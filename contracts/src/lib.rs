@@ -17,6 +17,12 @@ impl Contract {
         sphere_r: u8,
         sphere_g: u8,
         sphere_b: u8,
+        bg_color1_r: u8,
+        bg_color1_g: u8,
+        bg_color1_b: u8,
+        bg_color2_r: u8,
+        bg_color2_g: u8,
+        bg_color2_b: u8,
         cam_x: i32,
         cam_y: i32,
         cam_z: i32,
@@ -43,6 +49,8 @@ impl Contract {
 
         // Colors from input
         let sphere_color = (sphere_r as i32, sphere_g as i32, sphere_b as i32);
+        let bg_color1 = (bg_color1_r as i32, bg_color1_g as i32, bg_color1_b as i32);
+        let bg_color2 = (bg_color2_r as i32, bg_color2_g as i32, bg_color2_b as i32);
 
         for j in 0..HEIGHT {
             for i in 0..WIDTH {
@@ -75,41 +83,26 @@ impl Contract {
 
                 let (r, g, b) = if discriminant > 0 {
                     let sqrt_disc = discriminant.isqrt();
-                    let t = (-b_val - sqrt_disc) * SCALE as i64 / (2 * a_val); // Scale up numerator to keep precision?
-                    // t is distance.
-                    // The formula (-b - sqrt) / 2a.
-                    // b is scaled. sqrt is scaled. numerator is scaled.
-                    // a is scaled.
-                    // result is unitless (ratio).
-                    // We want t to be scaled.
-                    // So (-b - sqrt) * SCALE / (2a).
+                    let t = (-b_val - sqrt_disc) * SCALE as i64 / (2 * a_val);
                     
                     if t > 0 {
-                        // Hit Point
-                        // origin + ray_dir * t
-                        // ray_dir is scaled. t is scaled.
-                        // ray_dir * t is scaled^2. Need to divide by SCALE.
                         let t_i32 = t as i32;
                         let hit_point = origin + (ray_dir * t_i32);
                         let normal = (hit_point - sphere_pos).normalize();
                         
-                        // Diffuse Lighting
-                        // dot returns scaled value.
-                        let diff = normal.dot(light_dir); // Range -SCALE to SCALE
-                        let ambient = SCALE / 10; // 0.1
+                        let diff = normal.dot(light_dir);
+                        let ambient = SCALE / 10;
                         let intensity = if diff > 0 { diff + ambient } else { ambient };
                         
-                        // Final Color
-                        // color * intensity / SCALE
                         let r = (sphere_color.0 * intensity / SCALE).min(255) as u8;
                         let g = (sphere_color.1 * intensity / SCALE).min(255) as u8;
                         let b = (sphere_color.2 * intensity / SCALE).min(255) as u8;
                         (r, g, b)
                     } else {
-                        get_background(v)
+                        get_background(v, bg_color1, bg_color2)
                     }
                 } else {
-                    get_background(v)
+                    get_background(v, bg_color1, bg_color2)
                 };
 
                 pixels.push(r);
@@ -188,23 +181,18 @@ impl core::ops::Mul<i32> for Vec3 {
     }
 }
 
-fn get_background(v: i32) -> (u8, u8, u8) {
-    // Gradient: Top Blue (#5B9BD5) to Bottom White
+fn get_background(v: i32, bg_color1: (i32, i32, i32), bg_color2: (i32, i32, i32)) -> (u8, u8, u8) {
+    // Gradient: bg_color1 at top to bg_color2 at bottom
     // v is -SCALE to SCALE
     // t = (v + SCALE) / 2SCALE -> 0 to 1
-    // But we want integer math.
-    // t_num = v + SCALE. t_den = 2 * SCALE.
     
     let t_num = v + SCALE;
     let t_den = 2 * SCALE;
     
-    // Lerp: a + (b-a)*t
-    // r = 255 + (91 - 255) * t
-    // r = 255 - 164 * t
-    
-    let r = 255 - (164 * t_num) / t_den;
-    let g = 255 - (100 * t_num) / t_den; // 155 - 255 = -100
-    let b = 255 - (42 * t_num) / t_den;  // 213 - 255 = -42
+    // Lerp: color1 + (color2 - color1) * t
+    let r = bg_color1.0 + ((bg_color2.0 - bg_color1.0) * t_num) / t_den;
+    let g = bg_color1.1 + ((bg_color2.1 - bg_color1.1) * t_num) / t_den;
+    let b = bg_color1.2 + ((bg_color2.2 - bg_color1.2) * t_num) / t_den;
     
     (r as u8, g as u8, b as u8)
 }

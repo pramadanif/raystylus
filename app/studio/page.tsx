@@ -14,7 +14,6 @@ export default function StudioPage() {
     const [config, setConfig] = useState({
         resolution: '32x32',
         sphereColor: '#EBD5AB',
-        rayColor: '#5B9BD5',
         bgColor1: '#FFFFFF',
         bgColor2: '#5B7FD5',
         cameraX: 0,
@@ -87,6 +86,14 @@ export default function StudioPage() {
         }
     };
 
+    const clearRender = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
     return (
         <div className="min-h-screen bg-[#0f120e] text-gray-200 flex flex-col font-sans">
             {/* Header */}
@@ -125,7 +132,7 @@ export default function StudioPage() {
 
                         <div className="space-y-4 pt-4 border-t border-gray-800">
                             <label className="text-sm font-medium text-gray-300 block flex items-center">
-                                <Palette size={14} className="mr-2" /> Ray Coloring
+                                <Palette size={14} className="mr-2" /> Scene Coloring
                             </label>
                             <div className="space-y-3">
                                 <div>
@@ -146,24 +153,7 @@ export default function StudioPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-xs text-gray-500 mb-1 block">Ray Color</span>
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="color" 
-                                            value={config.rayColor} 
-                                            onChange={(e) => setConfig({ ...config, rayColor: e.target.value })} 
-                                            className="w-12 h-8 rounded cursor-pointer border border-gray-700"
-                                        />
-                                        <input 
-                                            type="text" 
-                                            value={config.rayColor} 
-                                            onChange={(e) => setConfig({ ...config, rayColor: e.target.value })} 
-                                            className="flex-1 bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs text-gray-300"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-gray-500 mb-1 block">BG Color 1</span>
+                                    <span className="text-xs text-gray-500 mb-1 block">BG Color 1 (Top)</span>
                                     <div className="flex gap-2">
                                         <input 
                                             type="color" 
@@ -180,7 +170,7 @@ export default function StudioPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-xs text-gray-500 mb-1 block">BG Color 2</span>
+                                    <span className="text-xs text-gray-500 mb-1 block">BG Color 2 (Bottom)</span>
                                     <div className="flex gap-2">
                                         <input 
                                             type="color" 
@@ -234,6 +224,12 @@ export default function StudioPage() {
                             ) : (
                                 <><Zap size={16} className="mr-2" /> Render Frame</>
                             )}
+                        </button>
+                        <button
+                            onClick={clearRender}
+                            className="w-full py-2 mt-2 rounded font-bold transition-all bg-red-900/30 hover:bg-red-900/50 text-red-300 border border-red-700/50 text-sm"
+                        >
+                            Wipeout Render
                         </button>
                         <div className="mt-4 bg-black/40 rounded p-3 text-xs font-mono space-y-2">
                             <div className="flex justify-between">
