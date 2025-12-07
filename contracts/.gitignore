@@ -1,0 +1,7 @@
+target/
+Debug/
+Release/
+**/*.rs.bk
+*.swp
+*.flamegraph.svg
+processor.yaml

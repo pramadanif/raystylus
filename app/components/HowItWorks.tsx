@@ -1,0 +1,107 @@
+'use client';
+
+import React from 'react';
+import { Cpu, Zap, Layers, Box } from 'lucide-react';
+
+export const HowItWorks: React.FC = () => {
+    return (
+        <section id="how-it-works" className="py-24 bg-[#151a14] relative border-t border-ray-mid/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold text-ray-cream mb-6">
+                        Under the Hood: Stylus Architecture
+                    </h2>
+                    <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+                        Traditional EVM contracts struggle with heavy math. RayStylus leverages Arbitrum Stylus to run compiled Rust code at native speeds.
+                    </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-12 items-center">
+                    {/* Visual Diagram */}
+                    <div className="relative bg-[#1b211a] p-8 rounded-2xl border border-ray-mid/20 shadow-2xl">
+                        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-ray-mid/20 rounded-full blur-[40px]"></div>
+
+                        <div className="space-y-6 relative z-10">
+                            {/* Step 1 */}
+                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-gray-800">
+                                <div className="p-3 bg-orange-900/30 text-orange-400 rounded-lg mr-4">
+                                    <Box size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-gray-200">Rust Logic</h4>
+                                    <p className="text-sm text-gray-500">Vector math & ray tracing algorithms written in Rust.</p>
+                                </div>
+                            </div>
+
+                            {/* Arrow Down */}
+                            <div className="flex justify-center -my-2">
+                                <span className="text-gray-600">↓</span>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-gray-800">
+                                <div className="p-3 bg-blue-900/30 text-blue-400 rounded-lg mr-4">
+                                    <Cpu size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-gray-200">WASM Compilation</h4>
+                                    <p className="text-sm text-gray-500">Compiled to WebAssembly for near-native execution speed.</p>
+                                </div>
+                            </div>
+
+                            {/* Arrow Down */}
+                            <div className="flex justify-center -my-2">
+                                <span className="text-gray-600">↓</span>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-ray-mid/30 shadow-[0_0_15px_rgba(98,129,65,0.1)]">
+                                <div className="p-3 bg-ray-mid/20 text-ray-light rounded-lg mr-4">
+                                    <Zap size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-ray-cream">Arbitrum Stylus</h4>
+                                    <p className="text-sm text-gray-500">Executed on-chain at 10x-100x lower gas cost than Solidity.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Explanation */}
+                    <div className="space-y-12">
+                        <div className="flex space-x-6">
+                            <div className="flex-shrink-0 mt-1">
+                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white">
+                                    <Layers className="h-6 w-6" aria-hidden="true" />
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-2">Why not Solidity?</h3>
+                                <p className="text-gray-400 leading-relaxed">
+                                    Ray tracing involves solving quadratic equations thousands of times per image.
+                                    In Solidity, this would consume millions of gas and likely hit the block gas limit instantly.
+                                    Stylus allows us to use standard Rust libraries (`std::ops`) and floating point math efficiently.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex space-x-6">
+                            <div className="flex-shrink-0 mt-1">
+                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white">
+                                    <Cpu className="h-6 w-6" aria-hidden="true" />
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-2">Zero-Knowledge Ready</h3>
+                                <p className="text-gray-400 leading-relaxed">
+                                    Because the logic is written in Rust, it can be easily adapted for ZK-proof generation in the future,
+                                    allowing for verifiable compute where the rendering happens off-chain and is proved on-chain.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
