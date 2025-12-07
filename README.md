@@ -20,16 +20,20 @@ Execute ray tracing computations directly on the blockchain with 10-100x lower g
 ## 📋 Table of Contents
 
 1. [Overview](#overview)
-2. [Deployment Information](#deployment-information)
-4. [System Architecture](#system-architecture)
-5. [Smart Contract Documentation](#smart-contract-documentation)
-6. [Technical Deep Dive](#technical-deep-dive)
-7. [Project Structure](#project-structure)
-8. [Usage Guide](#usage-guide)
-9. [Performance Benchmarks](#performance-benchmarks)
-10. [Development](#development)
-11. [Contributing](#contributing)
-12. [License](#license)
+2. [Getting Started](#getting-started)
+3. [System Architecture](#system-architecture)
+4. [Smart Contract Documentation](#smart-contract-documentation)
+5. [Technical Deep Dive](#technical-deep-dive)
+6. [Project Structure](#project-structure)
+7. [Usage Guide](#usage-guide)
+8. [Performance Benchmarks](#performance-benchmarks)
+9. [Development](#development)
+10. [Additional Technical Reference](#additional-technical-reference)
+11. [Deployment Checklist](#deployment-checklist)
+12. [Contributing](#contributing)
+13. [License](#license)
+14. [Acknowledgments](#acknowledgments)
+15. [Support](#support)
 
 ---
 
