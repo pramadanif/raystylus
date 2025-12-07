@@ -4,6 +4,7 @@ import { ProblemSolution } from "./components/ProblemSolution";
 import { HowItWorks } from "./components/HowItWorks";
 import { DemoSection } from "./components/DemoSection";
 import { Benchmark } from "./components/Benchmark";
+import { SystemArchitecture } from "./components/SystemArchitecture";
 import { Footer } from "./components/Footer";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
         <HowItWorks />
         <ProblemSolution />
         <DemoSection />
+        <SystemArchitecture />
         <Benchmark />
       </main>
       <Footer />

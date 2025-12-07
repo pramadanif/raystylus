@@ -14,7 +14,7 @@ export const DemoSection: React.FC = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                <div className="max-w-3xl mx-auto">
+                <div className="max-w-3xl mx-auto animate-fade-in-up">
                     <h2 className="text-4xl md:text-5xl font-bold text-ray-cream mb-6 tracking-tight">
                         Ready to Render On-Chain?
                     </h2>
@@ -23,14 +23,14 @@ export const DemoSection: React.FC = () => {
                     </p>
 
                     <Link href="/studio">
-                        <button className="group relative px-8 py-4 bg-ray-mid hover:bg-ray-light text-white font-bold text-lg rounded-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(98,129,65,0.4)] hover:shadow-[0_0_30px_rgba(139,174,102,0.6)] flex items-center mx-auto">
+                        <button className="group relative px-8 py-4 bg-ray-mid hover:bg-ray-light text-white font-bold text-lg rounded-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(98,129,65,0.4)] hover:shadow-[0_0_30px_rgba(139,174,102,0.6)] flex items-center mx-auto animate-pulse-glow">
                             <Zap className="mr-2 fill-current w-5 h-5 group-hover:rotate-12 transition-transform" />
                             LAUNCH STUDIO APP
                             <div className="absolute inset-0 rounded-lg ring-2 ring-white/20 group-hover:ring-white/40 transition-all"></div>
                         </button>
                     </Link>
 
-                    <div className="mt-12 p-6 bg-[#232922]/50 backdrop-blur border border-ray-mid/20 rounded-xl inline-block">
+                    <div className="mt-12 p-6 bg-[#232922]/50 backdrop-blur border border-ray-mid/20 rounded-xl inline-block animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                         <div className="flex items-center space-x-8 text-sm font-mono text-gray-400">
                             <div className="flex items-center">
                                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>

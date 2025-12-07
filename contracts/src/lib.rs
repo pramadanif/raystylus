@@ -1,159 +1,10 @@
 #![cfg_attr(target_arch = "wasm32", no_main)]
 
-// External crates
 extern crate alloc;
 
 use alloc::vec::Vec;
 use stylus_sdk::prelude::*;
-
-// ----------------------------------------------------------------------------
-// Vec3 Struct and Implementation
-// ----------------------------------------------------------------------------
-
-#[derive(Clone, Copy, Debug)]
-pub struct Vec3 {
-    pub e: [f64; 3],
-}
-
-impl Vec3 {
-    pub fn new(e0: f64, e1: f64, e2: f64) -> Vec3 {
-        Vec3 { e: [e0, e1, e2] }
-    }
-
-    pub fn x(&self) -> f64 {
-        self.e[0]
-    }
-    pub fn y(&self) -> f64 {
-        self.e[1]
-    }
-    pub fn z(&self) -> f64 {
-        self.e[2]
-    }
-
-    pub fn length_squared(&self) -> f64 {
-        self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
-    }
-
-    pub fn length(&self) -> f64 {
-        self.length_squared().sqrt()
-    }
-
-    pub fn dot(&self, other: &Vec3) -> f64 {
-        self.e[0] * other.e[0] + self.e[1] * other.e[1] + self.e[2] * other.e[2]
-    }
-
-    pub fn unit_vector(&self) -> Vec3 {
-        *self / self.length()
-    }
-}
-
-// Operator Overloading for Vec3
-
-use core::ops::{Add, Div, Mul, Neg, Sub};
-
-impl Add for Vec3 {
-    type Output = Vec3;
-    fn add(self, other: Vec3) -> Vec3 {
-        Vec3::new(
-            self.e[0] + other.e[0],
-            self.e[1] + other.e[1],
-            self.e[2] + other.e[2],
-        )
-    }
-}
-
-impl Sub for Vec3 {
-    type Output = Vec3;
-    fn sub(self, other: Vec3) -> Vec3 {
-        Vec3::new(
-            self.e[0] - other.e[0],
-            self.e[1] - other.e[1],
-            self.e[2] - other.e[2],
-        )
-    }
-}
-
-impl Mul<f64> for Vec3 {
-    type Output = Vec3;
-    fn mul(self, t: f64) -> Vec3 {
-        Vec3::new(self.e[0] * t, self.e[1] * t, self.e[2] * t)
-    }
-}
-
-impl Mul<Vec3> for f64 {
-    type Output = Vec3;
-    fn mul(self, v: Vec3) -> Vec3 {
-        v * self
-    }
-}
-
-impl Div<f64> for Vec3 {
-    type Output = Vec3;
-    fn div(self, t: f64) -> Vec3 {
-        self * (1.0 / t)
-    }
-}
-
-impl Neg for Vec3 {
-    type Output = Vec3;
-    fn neg(self) -> Vec3 {
-        Vec3::new(-self.e[0], -self.e[1], -self.e[2])
-    }
-}
-
-// ----------------------------------------------------------------------------
-// Ray Struct
-// ----------------------------------------------------------------------------
-
-pub struct Ray {
-    pub origin: Vec3,
-    pub dir: Vec3,
-}
-
-impl Ray {
-    pub fn new(origin: Vec3, dir: Vec3) -> Ray {
-        Ray { origin, dir }
-    }
-
-    pub fn at(&self, t: f64) -> Vec3 {
-        self.origin + (self.dir * t)
-    }
-}
-
-// ----------------------------------------------------------------------------
-// Core Ray Tracing Logic
-// ----------------------------------------------------------------------------
-
-fn hit_sphere(center: Vec3, radius: f64, ray: &Ray) -> f64 {
-    let oc = ray.origin - center;
-    let a = ray.dir.length_squared();
-    let half_b = oc.dot(&ray.dir);
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - discriminant.sqrt()) / a
-    }
-}
-
-fn ray_color(ray: &Ray) -> Vec3 {
-    let t = hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, ray);
-    if t > 0.0 {
-        let n = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vector();
-        return Vec3::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0) * 0.5;
-    }
-
-    // Background gradient
-    let unit_direction = ray.dir.unit_vector();
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
-}
-
-// ----------------------------------------------------------------------------
-// Stylus Entry Point
-// ----------------------------------------------------------------------------
+use stylus_sdk::abi::Bytes;
 
 #[storage]
 #[entrypoint]
@@ -161,42 +12,199 @@ pub struct Contract;
 
 #[public]
 impl Contract {
-    pub fn render_scene(&self) -> Result<Vec<u8>, Vec<u8>> {
-        const WIDTH: u32 = 32;
-        const HEIGHT: u32 = 32;
+    pub fn renderScene(
+        &self,
+        sphere_r: u8,
+        sphere_g: u8,
+        sphere_b: u8,
+        cam_x: i32,
+        cam_y: i32,
+        cam_z: i32,
+    ) -> Bytes {
+        const WIDTH: i32 = 32;
+        const HEIGHT: i32 = 32;
+        const SCALE: i32 = 1024; // Fixed point 1.0 = 1024
 
+        // Optimization: Pre-allocate memory
         let mut pixels = Vec::with_capacity((WIDTH * HEIGHT * 3) as usize);
 
-        // Camera setup
-        let origin = Vec3::new(0.0, 0.0, 0.0);
-        let horizontal = Vec3::new(4.0, 0.0, 0.0);
-        let vertical = Vec3::new(0.0, 4.0, 0.0);
-        let lower_left_corner =
-            origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, 1.0);
+        // Scene Setup (Scaled)
+        // Base origin is (0, 0, 2.5). We add the camera offset.
+        // Inputs are assumed to be standard integers, so we multiply by SCALE.
+        let origin = Vec3::new(
+            cam_x * SCALE, 
+            cam_y * SCALE, 
+            (2 * SCALE + SCALE/2) + cam_z * SCALE
+        );
+        
+        let sphere_pos = Vec3::new(0, 0, 0);
+        let sphere_radius = SCALE; // 1.0
+        let light_dir = Vec3::new(SCALE, SCALE, SCALE).normalize();
 
-        for j in (0..HEIGHT).rev() {
+        // Colors from input
+        let sphere_color = (sphere_r as i32, sphere_g as i32, sphere_b as i32);
+
+        for j in 0..HEIGHT {
             for i in 0..WIDTH {
-                let u = (i as f64) / ((WIDTH - 1) as f64);
-                let v = (j as f64) / ((HEIGHT - 1) as f64);
+                // Normalized Device Coordinates (-1 to 1)
+                // u = (i / width) * 2 - 1
+                let u = (i * 2 * SCALE) / WIDTH - SCALE;
+                let v = -((j * 2 * SCALE) / HEIGHT - SCALE); // Flip Y
 
-                let ray = Ray::new(
-                    origin,
-                    lower_left_corner + horizontal * u + vertical * v - origin,
-                );
+                // Ray Direction (Perspective)
+                // z = -2.0
+                let ray_dir = Vec3::new(u, v, -2 * SCALE).normalize();
 
-                let color = ray_color(&ray);
+                // Ray-Sphere Intersection
+                let oc = origin - sphere_pos;
+                let a = ray_dir.dot(ray_dir); // Should be close to SCALE (1.0)
+                let b = 2 * oc.dot(ray_dir);
+                let c = oc.dot(oc) - (sphere_radius as i64 * sphere_radius as i64 / SCALE as i64) as i32;
+                
+                // Discriminant = b*b - 4*a*c
+                // Careful with scaling.
+                // dot returns scaled value.
+                // b is scaled. b*b is scaled^2.
+                // 4*a*c. a is scaled. c is scaled. a*c is scaled^2.
+                // So discriminant is scaled^2.
+                
+                let b_val = b as i64;
+                let a_val = a as i64;
+                let c_val = c as i64;
+                let discriminant = b_val * b_val - 4 * a_val * c_val;
 
-                // Convert to u8 (0-255)
-                let ir = (255.999 * color.x()) as u8;
-                let ig = (255.999 * color.y()) as u8;
-                let ib = (255.999 * color.z()) as u8;
+                let (r, g, b) = if discriminant > 0 {
+                    let sqrt_disc = discriminant.isqrt();
+                    let t = (-b_val - sqrt_disc) * SCALE as i64 / (2 * a_val); // Scale up numerator to keep precision?
+                    // t is distance.
+                    // The formula (-b - sqrt) / 2a.
+                    // b is scaled. sqrt is scaled. numerator is scaled.
+                    // a is scaled.
+                    // result is unitless (ratio).
+                    // We want t to be scaled.
+                    // So (-b - sqrt) * SCALE / (2a).
+                    
+                    if t > 0 {
+                        // Hit Point
+                        // origin + ray_dir * t
+                        // ray_dir is scaled. t is scaled.
+                        // ray_dir * t is scaled^2. Need to divide by SCALE.
+                        let t_i32 = t as i32;
+                        let hit_point = origin + (ray_dir * t_i32);
+                        let normal = (hit_point - sphere_pos).normalize();
+                        
+                        // Diffuse Lighting
+                        // dot returns scaled value.
+                        let diff = normal.dot(light_dir); // Range -SCALE to SCALE
+                        let ambient = SCALE / 10; // 0.1
+                        let intensity = if diff > 0 { diff + ambient } else { ambient };
+                        
+                        // Final Color
+                        // color * intensity / SCALE
+                        let r = (sphere_color.0 * intensity / SCALE).min(255) as u8;
+                        let g = (sphere_color.1 * intensity / SCALE).min(255) as u8;
+                        let b = (sphere_color.2 * intensity / SCALE).min(255) as u8;
+                        (r, g, b)
+                    } else {
+                        get_background(v)
+                    }
+                } else {
+                    get_background(v)
+                };
 
-                pixels.push(ir);
-                pixels.push(ig);
-                pixels.push(ib);
+                pixels.push(r);
+                pixels.push(g);
+                pixels.push(b);
             }
         }
 
-        Ok(pixels)
+        pixels.into()
     }
+}
+
+// Helper Structs and Functions
+#[derive(Clone, Copy)]
+struct Vec3 {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+const SCALE: i32 = 1024;
+
+impl Vec3 {
+    fn new(x: i32, y: i32, z: i32) -> Self {
+        Self { x, y, z }
+    }
+
+    fn dot(self, other: Self) -> i32 {
+        ((self.x as i64 * other.x as i64 + self.y as i64 * other.y as i64 + self.z as i64 * other.z as i64) / SCALE as i64) as i32
+    }
+
+    fn normalize(self) -> Self {
+        let len_sq = self.x as i64 * self.x as i64 + self.y as i64 * self.y as i64 + self.z as i64 * self.z as i64;
+        let len = len_sq.isqrt() as i32;
+        
+        if len == 0 { return self; }
+        
+        Self {
+            x: (self.x as i64 * SCALE as i64 / len as i64) as i32,
+            y: (self.y as i64 * SCALE as i64 / len as i64) as i32,
+            z: (self.z as i64 * SCALE as i64 / len as i64) as i32,
+        }
+    }
+}
+
+impl core::ops::Add for Vec3 {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+impl core::ops::Sub for Vec3 {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
+    }
+}
+
+impl core::ops::Mul<i32> for Vec3 {
+    type Output = Self;
+    fn mul(self, scalar: i32) -> Self {
+        Self {
+            x: (self.x as i64 * scalar as i64 / SCALE as i64) as i32,
+            y: (self.y as i64 * scalar as i64 / SCALE as i64) as i32,
+            z: (self.z as i64 * scalar as i64 / SCALE as i64) as i32,
+        }
+    }
+}
+
+fn get_background(v: i32) -> (u8, u8, u8) {
+    // Gradient: Top Blue (#5B9BD5) to Bottom White
+    // v is -SCALE to SCALE
+    // t = (v + SCALE) / 2SCALE -> 0 to 1
+    // But we want integer math.
+    // t_num = v + SCALE. t_den = 2 * SCALE.
+    
+    let t_num = v + SCALE;
+    let t_den = 2 * SCALE;
+    
+    // Lerp: a + (b-a)*t
+    // r = 255 + (91 - 255) * t
+    // r = 255 - 164 * t
+    
+    let r = 255 - (164 * t_num) / t_den;
+    let g = 255 - (100 * t_num) / t_den; // 155 - 255 = -100
+    let b = 255 - (42 * t_num) / t_den;  // 213 - 255 = -42
+    
+    (r as u8, g as u8, b as u8)
 }

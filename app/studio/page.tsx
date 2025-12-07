@@ -3,16 +3,20 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ConnectButton } from '../components/ConnectButton';
 import { useRayStylus } from '../hooks/useRayStylus';
-import { Settings, Camera, Zap, Activity } from 'lucide-react';
+import { RaccoonLogo } from '../components/Logo';
+import { Settings, Camera, Zap, Activity, Palette } from 'lucide-react';
 
 export default function StudioPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { render, isLoading, data, gasUsed, execTime } = useRayStylus();
+    const { render, isLoading, data, gasUsed, execTime, error } = useRayStylus();
 
     // Configuration State (Client-side simulation or future contract params)
     const [config, setConfig] = useState({
         resolution: '32x32',
         sphereColor: '#EBD5AB',
+        rayColor: '#5B9BD5',
+        bgColor1: '#FFFFFF',
+        bgColor2: '#5B7FD5',
         cameraX: 0,
         cameraY: 0,
         cameraZ: 0,
@@ -31,41 +35,66 @@ export default function StudioPage() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const rawBytes = hexString.slice(2);
-        const bytes = new Uint8Array(rawBytes.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+        try {
+            console.log('Drawing pixels, hex length:', hexString.length);
+            
+            const rawBytes = hexString.slice(2); // Remove '0x' prefix
+            
+            if (!rawBytes || rawBytes.length === 0) {
+                console.error('No bytes data');
+                return;
+            }
 
-        const width = 32;
-        const height = 32;
-        const imageData = ctx.createImageData(width, height);
+            // Parse hex string to bytes
+            const byteArray = [];
+            for (let i = 0; i < rawBytes.length; i += 2) {
+                byteArray.push(parseInt(rawBytes.substr(i, 2), 16));
+            }
+            const bytes = new Uint8Array(byteArray);
 
-        for (let i = 0; i < width * height; i++) {
-            const r = bytes[i * 3 + 0];
-            const g = bytes[i * 3 + 1];
-            const b = bytes[i * 3 + 2];
+            console.log('Bytes array length:', bytes.length, 'Expected:', 32 * 32 * 3);
 
-            imageData.data[i * 4 + 0] = r;
-            imageData.data[i * 4 + 1] = g;
-            imageData.data[i * 4 + 2] = b;
-            imageData.data[i * 4 + 3] = 255;
+            const width = 32;
+            const height = 32;
+            const imageData = ctx.createImageData(width, height);
+
+            // Fill pixel data
+            for (let i = 0; i < width * height; i++) {
+                const byteIndex = i * 3;
+                const pixelIndex = i * 4;
+                
+                imageData.data[pixelIndex + 0] = bytes[byteIndex] || 0;     // R
+                imageData.data[pixelIndex + 1] = bytes[byteIndex + 1] || 0; // G
+                imageData.data[pixelIndex + 2] = bytes[byteIndex + 2] || 0; // B
+                imageData.data[pixelIndex + 3] = 255;                       // A
+            }
+
+            // Create a bitmap from the image data to allow scaling
+            createImageBitmap(imageData).then(bitmap => {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Disable smoothing for pixel art look
+                ctx.imageSmoothingEnabled = false;
+                
+                // Draw scaled image
+                ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                
+                console.log('Successfully drew scaled pixels to canvas');
+            });
+        } catch (err) {
+            console.error('Error drawing pixels:', err);
         }
-
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCtx?.putImageData(imageData, 0, 0);
-
-        ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
     };
 
     return (
         <div className="min-h-screen bg-[#0f120e] text-gray-200 flex flex-col font-sans">
             {/* Header */}
             <header className="h-16 border-b border-gray-800 bg-[#151a14] px-6 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-ray-mid rounded flex items-center justify-center font-bold text-white">R</div>
+                <div className="flex items-center space-x-3">
+                    <div className="text-ray-light">
+                        <RaccoonLogo size="sm" />
+                    </div>
                     <span className="font-bold text-lg text-white">RayStylus Studio</span>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -96,6 +125,82 @@ export default function StudioPage() {
 
                         <div className="space-y-4 pt-4 border-t border-gray-800">
                             <label className="text-sm font-medium text-gray-300 block flex items-center">
+                                <Palette size={14} className="mr-2" /> Ray Coloring
+                            </label>
+                            <div className="space-y-3">
+                                <div>
+                                    <span className="text-xs text-gray-500 mb-1 block">Sphere Color</span>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="color" 
+                                            value={config.sphereColor} 
+                                            onChange={(e) => setConfig({ ...config, sphereColor: e.target.value })} 
+                                            className="w-12 h-8 rounded cursor-pointer border border-gray-700"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            value={config.sphereColor} 
+                                            onChange={(e) => setConfig({ ...config, sphereColor: e.target.value })} 
+                                            className="flex-1 bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs text-gray-300"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xs text-gray-500 mb-1 block">Ray Color</span>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="color" 
+                                            value={config.rayColor} 
+                                            onChange={(e) => setConfig({ ...config, rayColor: e.target.value })} 
+                                            className="w-12 h-8 rounded cursor-pointer border border-gray-700"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            value={config.rayColor} 
+                                            onChange={(e) => setConfig({ ...config, rayColor: e.target.value })} 
+                                            className="flex-1 bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs text-gray-300"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xs text-gray-500 mb-1 block">BG Color 1</span>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="color" 
+                                            value={config.bgColor1} 
+                                            onChange={(e) => setConfig({ ...config, bgColor1: e.target.value })} 
+                                            className="w-12 h-8 rounded cursor-pointer border border-gray-700"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            value={config.bgColor1} 
+                                            onChange={(e) => setConfig({ ...config, bgColor1: e.target.value })} 
+                                            className="flex-1 bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs text-gray-300"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xs text-gray-500 mb-1 block">BG Color 2</span>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="color" 
+                                            value={config.bgColor2} 
+                                            onChange={(e) => setConfig({ ...config, bgColor2: e.target.value })} 
+                                            className="w-12 h-8 rounded cursor-pointer border border-gray-700"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            value={config.bgColor2} 
+                                            onChange={(e) => setConfig({ ...config, bgColor2: e.target.value })} 
+                                            className="flex-1 bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs text-gray-300"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t border-gray-800">
+                            <label className="text-sm font-medium text-gray-300 block flex items-center">
                                 <Camera size={14} className="mr-2" /> Camera Offset
                             </label>
                             <div className="grid grid-cols-3 gap-2">
@@ -117,7 +222,7 @@ export default function StudioPage() {
 
                     <div className="mt-auto pt-6 border-t border-gray-800">
                         <button
-                            onClick={render}
+                            onClick={() => render(config)}
                             disabled={isLoading}
                             className={`w-full py-3 rounded font-bold transition-all flex items-center justify-center ${isLoading
                                 ? 'bg-ray-mid/50 cursor-not-allowed text-white/50'
@@ -133,8 +238,8 @@ export default function StudioPage() {
                         <div className="mt-4 bg-black/40 rounded p-3 text-xs font-mono space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Status</span>
-                                <span className={isLoading ? "text-yellow-500" : "text-green-500"}>
-                                    {isLoading ? "Running WASM..." : "Ready"}
+                                <span className={isLoading ? "text-yellow-500" : error ? "text-red-500" : "text-green-500"}>
+                                    {isLoading ? "Running WASM..." : error ? "Error" : "Ready"}
                                 </span>
                             </div>
                             <div className="flex justify-between">
@@ -145,6 +250,11 @@ export default function StudioPage() {
                                 <span className="text-gray-500">Time</span>
                                 <span>{execTime || '-'}</span>
                             </div>
+                            {error && (
+                                <div className="mt-2 p-2 bg-red-900/30 border border-red-700/50 rounded text-red-300 text-xs">
+                                    {error}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </aside>

@@ -91,40 +91,41 @@ export const Hero: React.FC = () => {
 
                     {/* Text Content */}
                     <div className="text-left">
-                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-ray-mid bg-ray-mid/10 text-ray-light text-xs font-mono mb-6">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-ray-mid bg-ray-mid/10 text-ray-light text-xs font-mono mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                             <Zap size={14} className="mr-2" />
                             POWERED BY ARBITRUM STYLUS
                         </div>
-                        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-ray-cream mb-6 leading-tight">
+                        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-ray-cream mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                             RAYSTYLUS: <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-ray-light to-ray-mid">
-                                Rendering 3D On-Chain
-                            </span> <br />
-                            Has Arrived.
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-ray-light to-ray-mid animate-pulse-glow">
+                                ON-CHAIN GRAPHICS
+                            </span>
                         </h1>
-                        <p className="text-lg text-gray-400 mb-8 max-w-lg leading-relaxed">
-                            Transform Arbitrum Stylus (Rust) into the fastest Compute Engine in Web3.
-                            Heavy graphics computation is now possible on-chain with minimal gas costs.
+                        
+                        <div className="h-8 mb-8 font-mono text-lg text-gray-400 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                            <div className="typewriter inline-block">
+                                &gt; Rendering pixels via Rust Smart Contracts...
+                            </div>
+                        </div>
+
+                        <p className="text-lg text-gray-400 mb-8 max-w-lg animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                            Experience the first fully on-chain ray tracer built with Rust and WebAssembly. 
+                            High-performance graphics computation directly on the Arbitrum blockchain.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <a
-                                href="#demo"
-                                className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-bold rounded-lg text-ray-dark bg-ray-light hover:bg-ray-cream transition-all shadow-[0_0_20px_rgba(139,174,102,0.3)] hover:shadow-[0_0_30px_rgba(235,213,171,0.4)]"
-                            >
-                                RENDER NOW
-                                <ArrowRight className="ml-2 h-5 w-5" />
+
+                        <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+                            <a href="/studio" className="px-8 py-4 bg-ray-mid hover:bg-ray-light text-white font-bold rounded-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(98,129,65,0.4)] flex items-center justify-center group">
+                                LAUNCH STUDIO
+                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                             </a>
-                            <a
-                                href="#benchmark"
-                                className="inline-flex items-center justify-center px-8 py-4 border border-ray-mid text-base font-bold rounded-lg text-ray-cream hover:bg-ray-mid/20 transition-all"
-                            >
-                                VIEW GAS COST
+                            <a href="#architecture" className="px-8 py-4 border border-gray-700 hover:border-ray-mid text-gray-300 hover:text-white font-bold rounded-lg transition-all flex items-center justify-center">
+                                VIEW ARCHITECTURE
                             </a>
                         </div>
                     </div>
 
                     {/* Hero Visual */}
-                    <div className="relative flex justify-center items-center">
+                    <div className="relative animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
                         <div className="absolute inset-0 bg-gradient-to-tr from-ray-mid/20 to-transparent rounded-full blur-3xl opacity-30"></div>
                         <div className="relative border border-ray-mid/30 rounded-xl p-2 bg-ray-dark/50 backdrop-blur-sm shadow-2xl">
                             <div className="flex items-center justify-between px-4 py-2 border-b border-ray-mid/20 bg-ray-dark/80 rounded-t-lg">

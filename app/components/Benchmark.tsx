@@ -5,12 +5,12 @@ export const Benchmark: React.FC = () => {
     return (
         <section id="benchmark" className="py-20 bg-[#1B211A]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
+                <div className="text-center mb-16 animate-fade-in-up">
                     <h2 className="text-3xl font-bold text-ray-cream">Performance Benchmark</h2>
                     <p className="text-gray-400 mt-4">Quantitative proof why Stylus is the future of on-chain computation.</p>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-ray-mid/30 shadow-[0_0_40px_rgba(98,129,65,0.1)]">
+                <div className="overflow-hidden rounded-xl border border-ray-mid/30 shadow-[0_0_40px_rgba(98,129,65,0.1)] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                     <table className="min-w-full divide-y divide-gray-800">
                         <thead className="bg-[#232922]">
                             <tr>
@@ -26,12 +26,12 @@ export const Benchmark: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-[#1B211A] divide-y divide-gray-800">
-                            <tr>
+                            <tr className="hover:bg-white/5 transition-colors">
                                 <td className="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-300">
                                     Rendering Cost (32x32)
                                 </td>
                                 <td className="px-6 py-6 whitespace-nowrap bg-ray-mid/5">
-                                    <span className="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-ray-mid/20 text-ray-light border border-ray-mid">
+                                    <span className="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-ray-mid/20 text-ray-light border border-ray-mid animate-pulse-glow">
                                         $0.001 - $0.005
                                     </span>
                                 </td>
@@ -40,7 +40,7 @@ export const Benchmark: React.FC = () => {
                                     <span className="block text-xs text-red-400 mt-1">Gas Limit Exceeded</span>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr className="hover:bg-white/5 transition-colors">
                                 <td className="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-300">
                                     Computation Time
                                 </td>
@@ -52,12 +52,12 @@ export const Benchmark: React.FC = () => {
                                     Timeout / Fail
                                 </td>
                             </tr>
-                            <tr>
+                            <tr className="hover:bg-white/5 transition-colors">
                                 <td className="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-300">
                                     Math Precision
                                 </td>
                                 <td className="px-6 py-6 whitespace-nowrap bg-ray-mid/5">
-                                    <span className="text-ray-light">Native Floating Point (f64)</span>
+                                    <span className="text-ray-light">Fixed Point (Scale 1024)</span>
                                 </td>
                                 <td className="px-6 py-6 whitespace-nowrap text-sm text-gray-500">
                                     Fixed Point Workarounds

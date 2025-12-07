@@ -4,8 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-stylus-sdk = "0.6.0"
+stylus-sdk = "0.7.0"
 mini-alloc = "0.4.2"
+ruint = "=1.16.0"
+indexmap = "2.12"
+fixed = "1.27.0"
+alloy-primitives = "0.8"
 
 [dev-dependencies]
 
@@ -14,6 +18,10 @@ export-abi = ["stylus-sdk/export-abi"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "check"
+path = "src/bin/check.rs"
 
 [profile.release]
 codegen-units = 1

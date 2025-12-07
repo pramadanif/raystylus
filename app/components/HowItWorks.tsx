@@ -7,7 +7,7 @@ export const HowItWorks: React.FC = () => {
     return (
         <section id="how-it-works" className="py-24 bg-[#151a14] relative border-t border-ray-mid/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
+                <div className="text-center mb-16 animate-fade-in-up">
                     <h2 className="text-3xl md:text-5xl font-bold text-ray-cream mb-6">
                         Under the Hood: Stylus Architecture
                     </h2>
@@ -18,13 +18,13 @@ export const HowItWorks: React.FC = () => {
 
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     {/* Visual Diagram */}
-                    <div className="relative bg-[#1b211a] p-8 rounded-2xl border border-ray-mid/20 shadow-2xl">
+                    <div className="relative bg-[#1b211a] p-8 rounded-2xl border border-ray-mid/20 shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                         <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-ray-mid/20 rounded-full blur-[40px]"></div>
 
                         <div className="space-y-6 relative z-10">
                             {/* Step 1 */}
-                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-gray-800">
-                                <div className="p-3 bg-orange-900/30 text-orange-400 rounded-lg mr-4">
+                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-gray-800 hover:border-orange-500/50 transition-colors group">
+                                <div className="p-3 bg-orange-900/30 text-orange-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
                                     <Box size={24} />
                                 </div>
                                 <div>
@@ -35,12 +35,12 @@ export const HowItWorks: React.FC = () => {
 
                             {/* Arrow Down */}
                             <div className="flex justify-center -my-2">
-                                <span className="text-gray-600">↓</span>
+                                <span className="text-gray-600 animate-bounce">↓</span>
                             </div>
 
                             {/* Step 2 */}
-                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-gray-800">
-                                <div className="p-3 bg-blue-900/30 text-blue-400 rounded-lg mr-4">
+                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-gray-800 hover:border-blue-500/50 transition-colors group">
+                                <div className="p-3 bg-blue-900/30 text-blue-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
                                     <Cpu size={24} />
                                 </div>
                                 <div>
@@ -51,12 +51,12 @@ export const HowItWorks: React.FC = () => {
 
                             {/* Arrow Down */}
                             <div className="flex justify-center -my-2">
-                                <span className="text-gray-600">↓</span>
+                                <span className="text-gray-600 animate-bounce" style={{ animationDelay: '0.1s' }}>↓</span>
                             </div>
 
                             {/* Step 3 */}
-                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-ray-mid/30 shadow-[0_0_15px_rgba(98,129,65,0.1)]">
-                                <div className="p-3 bg-ray-mid/20 text-ray-light rounded-lg mr-4">
+                            <div className="flex items-center p-4 bg-black/40 rounded-xl border border-ray-mid/30 shadow-[0_0_15px_rgba(98,129,65,0.1)] hover:shadow-[0_0_25px_rgba(98,129,65,0.3)] transition-all group">
+                                <div className="p-3 bg-ray-mid/20 text-ray-light rounded-lg mr-4 group-hover:scale-110 transition-transform">
                                     <Zap size={24} />
                                 </div>
                                 <div>
@@ -68,10 +68,10 @@ export const HowItWorks: React.FC = () => {
                     </div>
 
                     {/* Explanation */}
-                    <div className="space-y-12">
-                        <div className="flex space-x-6">
+                    <div className="space-y-12 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                        <div className="flex space-x-6 group">
                             <div className="flex-shrink-0 mt-1">
-                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white">
+                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white group-hover:rotate-12 transition-transform">
                                     <Layers className="h-6 w-6" aria-hidden="true" />
                                 </div>
                             </div>
@@ -80,14 +80,14 @@ export const HowItWorks: React.FC = () => {
                                 <p className="text-gray-400 leading-relaxed">
                                     Ray tracing involves solving quadratic equations thousands of times per image.
                                     In Solidity, this would consume millions of gas and likely hit the block gas limit instantly.
-                                    Stylus allows us to use standard Rust libraries (`std::ops`) and floating point math efficiently.
+                                    Stylus allows us to use standard Rust libraries and fixed-point math efficiently.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex space-x-6">
+                        <div className="flex space-x-6 group">
                             <div className="flex-shrink-0 mt-1">
-                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white">
+                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white group-hover:rotate-12 transition-transform">
                                     <Cpu className="h-6 w-6" aria-hidden="true" />
                                 </div>
                             </div>

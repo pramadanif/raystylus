@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box } from './Icons';
+import { RaccoonLogo } from './Logo';
 import Link from 'next/link';
 
 export const LandingNavbar: React.FC = () => {
@@ -7,8 +8,10 @@ export const LandingNavbar: React.FC = () => {
         <nav className="fixed top-0 left-0 right-0 z-50 bg-ray-dark/90 backdrop-blur-md border-b border-ray-mid/30">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center space-x-2">
-                        <Box className="h-8 w-8 text-ray-light" />
+                    <div className="flex items-center space-x-3">
+                        <div className="text-ray-light hover:text-ray-light transition-colors">
+                            <RaccoonLogo size="sm" />
+                        </div>
                         <span className="text-xl font-bold tracking-wider text-ray-cream">RAYSTYLUS</span>
                     </div>
                     <div className="hidden md:block">

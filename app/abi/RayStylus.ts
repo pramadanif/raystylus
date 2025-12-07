@@ -1,7 +1,14 @@
 export const RAYSTYLUS_ABI = [
     {
-        "inputs": [],
-        "name": "render_scene",
+        "inputs": [
+            { "name": "sphere_r", "type": "uint8" },
+            { "name": "sphere_g", "type": "uint8" },
+            { "name": "sphere_b", "type": "uint8" },
+            { "name": "cam_x", "type": "int32" },
+            { "name": "cam_y", "type": "int32" },
+            { "name": "cam_z", "type": "int32" }
+        ],
+        "name": "renderScene",
         "outputs": [
             {
                 "type": "bytes",
@@ -13,4 +20,4 @@ export const RAYSTYLUS_ABI = [
     }
 ] as const;
 
-export const RAYSTYLUS_ADDRESS = "0xd1f116dd31048947d400ee5ad333ca7130b55dcafbeaccfb7d35086e3d7fe4b4";
+export const RAYSTYLUS_ADDRESS = "0x9db62d00f4363f3be530729864350bb98c310888";
