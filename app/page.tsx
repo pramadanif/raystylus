@@ -6,6 +6,7 @@ import { DemoSection } from "./components/DemoSection";
 import { Benchmark } from "./components/Benchmark";
 import { SystemArchitecture } from "./components/SystemArchitecture";
 import { Footer } from "./components/Footer";
+import { ScrollAnimation } from "./components/ui/ScrollAnimation";
 
 export default function Home() {
   return (
@@ -13,13 +14,25 @@ export default function Home() {
       <LandingNavbar />
       <main>
         <Hero />
-        <HowItWorks />
-        <ProblemSolution />
-        <DemoSection />
-        <SystemArchitecture />
-        <Benchmark />
+        <ScrollAnimation>
+          <HowItWorks />
+        </ScrollAnimation>
+        <ScrollAnimation>
+          <ProblemSolution />
+        </ScrollAnimation>
+        <ScrollAnimation>
+          <DemoSection />
+        </ScrollAnimation>
+        <ScrollAnimation>
+          <SystemArchitecture />
+        </ScrollAnimation>
+        <ScrollAnimation>
+          <Benchmark />
+        </ScrollAnimation>
       </main>
-      <Footer />
+      <ScrollAnimation>
+        <Footer />
+      </ScrollAnimation>
     </div>
   );
 }

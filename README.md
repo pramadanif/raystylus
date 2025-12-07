@@ -21,9 +21,8 @@ Execute ray tracing computations directly on the blockchain with 10-100x lower g
 
 1. [Overview](#overview)
 2. [Deployment Information](#deployment-information)
-3. [Getting Started](#getting-started)
-4. [Smart Contract Documentation](#smart-contract-documentation)
-5. [System Architecture](#system-architecture)
+4. [System Architecture](#system-architecture)
+5. [Smart Contract Documentation](#smart-contract-documentation)
 6. [Technical Deep Dive](#technical-deep-dive)
 7. [Project Structure](#project-structure)
 8. [Usage Guide](#usage-guide)
@@ -73,33 +72,90 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 
 ### Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/pramadanif/raystylus.git
-cd raystylus
+## 🏗️ System Architecture
 
-# Install dependencies
-npm install
+### End-to-End Data Flow
 
-# Start development server
-npm run dev
-
-# Open http://localhost:3000
+```mermaid
+graph TB
+    A[Frontend UI] -->|Configure| B[Scene Parameters]
+    B -->|Color + Camera XYZ| C[Wagmi/Viem]
+    C -->|readContract| D[RPC Endpoint]
+    D -->|Call| E[Arbitrum Stylus Contract]
+    
+    E -->|1. Setup Scene| F[Fixed-Point Math<br/>Scale: 1024]
+    F -->|2. Generate Rays| G[32x32 Loop]
+    G -->|3. Ray-Sphere<br/>Intersection| H[Quadratic Solver]
+    H -->|4. Diffuse Lighting| I[Normal Calculation]
+    I -->|5. RGB Encoding| J[Packed Bytes]
+    
+    J -->|1024 bytes| K[Return to Client]
+    K -->|Hex String| L[Canvas Engine]
+    L -->|Draw| M[Visual Output]
+    
+    style E fill:#8BAE66,stroke:#628141,color:#fff
+    style F fill:#628141,stroke:#2A3328,color:#fff
+    style M fill:#EBD5AB,stroke:#628141,color:#000
 ```
 
-### Build & Deploy Contract
+### Contract Execution Pipeline
 
-```bash
-cd contracts
+```mermaid
+sequenceDiagram
+    participant User as User Wallet
+    participant Frontend as Next.js Frontend
+    participant RPC as RPC Node
+    participant VM as Stylus VM
+    participant Contract as Ray Tracer
+    
+    User->>Frontend: Set Color & Camera
+    Frontend->>Frontend: Parse Hex Color
+    Frontend->>RPC: readContract(r, g, b, x, y, z)
+    RPC->>VM: Execute WASM
+    VM->>Contract: renderScene(args)
+    
+    Contract->>Contract: Initialize Scene<br/>Origin: (cam_x, cam_y, cam_z+2.5)<br/>Sphere: (0, 0, 0) r=1
+    
+    loop For Each Pixel (32x32)
+        Contract->>Contract: Calc Ray Direction
+        Contract->>Contract: Ray-Sphere Test
+        alt Hit Sphere
+            Contract->>Contract: Calculate Normal
+            Contract->>Contract: Diffuse Lighting
+            Contract->>Contract: Color = RGB(r,g,b) * intensity
+        else No Hit
+            Contract->>Contract: Background Gradient
+        end
+        Contract->>Contract: Push RGB to Vec
+    end
+    
+    Contract->>Contract: Return Bytes
+    VM->>RPC: Result (1024 bytes)
+    RPC->>Frontend: Hex String
+    Frontend->>Frontend: Decode & Draw
+    Frontend->>User: Display Rendered Image
+```
 
-# Build
-cargo build --release --target wasm32-unknown-unknown
+### Component Hierarchy
 
-# Deploy to Arbitrum Sepolia
-cargo stylus deploy \
-  --private-key YOUR_PRIVATE_KEY \
-  --endpoint https://sepolia-rollup.arbitrum.io/rpc \
-  --max-fee-per-gas-gwei 30
+```mermaid
+graph LR
+    A[App] -->|layout| B[RootLayout]
+    B -->|page| C[LandingPage]
+    C -->|Hero| D["🎨 Hero Section"]
+    C -->|ProblemSolution| E["⚡ Problem/Solution"]
+    C -->|HowItWorks| F["🔧 How It Works"]
+    C -->|Benchmark| G["📊 Benchmark Table"]
+    C -->|SystemArchitecture| H["🏗️ Architecture Diagram"]
+    C -->|DemoSection| I["🚀 Demo CTA"]
+    C -->|Footer| J["📄 Footer"]
+    
+    K[Studio Page] -->|useRayStylus| L["🪝 Custom Hook"]
+    K -->|RayStylus.tsx| M["🎛️ Configuration UI"]
+    K -->|canvas| N["🖼️ Canvas Renderer"]
+    
+    style A fill:#1B211A,stroke:#628141,color:#EBD5AB
+    style K fill:#628141,stroke:#8BAE66,color:#EBD5AB
 ```
 
 ---
@@ -379,93 +435,7 @@ View the contract on Arbiscan:
 
 ---
 
-## 🏗️ System Architecture
 
-### End-to-End Data Flow
-
-```mermaid
-graph TB
-    A[Frontend UI] -->|Configure| B[Scene Parameters]
-    B -->|Color + Camera XYZ| C[Wagmi/Viem]
-    C -->|readContract| D[RPC Endpoint]
-    D -->|Call| E[Arbitrum Stylus Contract]
-    
-    E -->|1. Setup Scene| F[Fixed-Point Math<br/>Scale: 1024]
-    F -->|2. Generate Rays| G[32x32 Loop]
-    G -->|3. Ray-Sphere<br/>Intersection| H[Quadratic Solver]
-    H -->|4. Diffuse Lighting| I[Normal Calculation]
-    I -->|5. RGB Encoding| J[Packed Bytes]
-    
-    J -->|1024 bytes| K[Return to Client]
-    K -->|Hex String| L[Canvas Engine]
-    L -->|Draw| M[Visual Output]
-    
-    style E fill:#8BAE66,stroke:#628141,color:#fff
-    style F fill:#628141,stroke:#2A3328,color:#fff
-    style M fill:#EBD5AB,stroke:#628141,color:#000
-```
-
-### Contract Execution Pipeline
-
-```mermaid
-sequenceDiagram
-    participant User as User Wallet
-    participant Frontend as Next.js Frontend
-    participant RPC as RPC Node
-    participant VM as Stylus VM
-    participant Contract as Ray Tracer
-    
-    User->>Frontend: Set Color & Camera
-    Frontend->>Frontend: Parse Hex Color
-    Frontend->>RPC: readContract(r, g, b, x, y, z)
-    RPC->>VM: Execute WASM
-    VM->>Contract: renderScene(args)
-    
-    Contract->>Contract: Initialize Scene<br/>Origin: (cam_x, cam_y, cam_z+2.5)<br/>Sphere: (0, 0, 0) r=1
-    
-    loop For Each Pixel (32x32)
-        Contract->>Contract: Calc Ray Direction
-        Contract->>Contract: Ray-Sphere Test
-        alt Hit Sphere
-            Contract->>Contract: Calculate Normal
-            Contract->>Contract: Diffuse Lighting
-            Contract->>Contract: Color = RGB(r,g,b) * intensity
-        else No Hit
-            Contract->>Contract: Background Gradient
-        end
-        Contract->>Contract: Push RGB to Vec
-    end
-    
-    Contract->>Contract: Return Bytes
-    VM->>RPC: Result (1024 bytes)
-    RPC->>Frontend: Hex String
-    Frontend->>Frontend: Decode & Draw
-    Frontend->>User: Display Rendered Image
-```
-
-### Component Hierarchy
-
-```mermaid
-graph LR
-    A[App] -->|layout| B[RootLayout]
-    B -->|page| C[LandingPage]
-    C -->|Hero| D["🎨 Hero Section"]
-    C -->|ProblemSolution| E["⚡ Problem/Solution"]
-    C -->|HowItWorks| F["🔧 How It Works"]
-    C -->|Benchmark| G["📊 Benchmark Table"]
-    C -->|SystemArchitecture| H["🏗️ Architecture Diagram"]
-    C -->|DemoSection| I["🚀 Demo CTA"]
-    C -->|Footer| J["📄 Footer"]
-    
-    K[Studio Page] -->|useRayStylus| L["🪝 Custom Hook"]
-    K -->|RayStylus.tsx| M["🎛️ Configuration UI"]
-    K -->|canvas| N["🖼️ Canvas Renderer"]
-    
-    style A fill:#1B211A,stroke:#628141,color:#EBD5AB
-    style K fill:#628141,stroke:#8BAE66,color:#EBD5AB
-```
-
----
 
 ## 💡 Technical Deep Dive
 
