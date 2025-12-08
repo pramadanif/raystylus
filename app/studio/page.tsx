@@ -113,18 +113,23 @@ export default function StudioPage() {
         setMintMessage('⏳ Sending transaction to Arbitrum Sepolia...');
         console.log('🟡 Starting mint with config:', config);
         
-        const txHash = await mint(config);
+        const result = await mint(config);
         
-        if (txHash && txHash.startsWith('0x')) {
-            console.log('✅ Got TX hash:', txHash);
-            setMintMessage(`⏳ Waiting for confirmation... TX: ${txHash.slice(0, 10)}...`);
-            // Give it 5 seconds for receipt to propagate
-            await new Promise(r => setTimeout(r, 5000));
-            setMintMessage(`✓ Minted! TX: ${txHash}`);
+        if (result) {
+            console.log('✅ Got sender address:', result);
+            // Show success immediately - no "confirming" state
+            setMintMessage(`✓ Transaction submitted! Check on Arbiscan`);
         } else {
-            console.error('❌ Invalid or no TX hash returned:', txHash);
-            setMintMessage(`❌ Mint failed or no TX hash. Check console. Got: ${txHash}`);
+            console.error('❌ Mint failed');
+            setMintMessage(`❌ Mint failed. Check console for details.`);
         }
+    };
+
+    const handleRender = async () => {
+        // Clear mint message when starting a new render
+        setMintMessage('');
+        // Call render hook
+        await render(config);
     };
 
     return (
@@ -251,7 +256,7 @@ export default function StudioPage() {
 
                     <div className="mt-auto pt-6 border-t border-gray-800">
                         <button
-                            onClick={() => render(config)}
+                            onClick={handleRender}
                             disabled={isLoading}
                             className={`w-full py-3 rounded font-bold transition-all flex items-center justify-center ${isLoading
                                 ? 'bg-ray-mid/50 cursor-not-allowed text-white/50'
@@ -275,7 +280,7 @@ export default function StudioPage() {
                             }`}
                         >
                             {isMinting ? (
-                                <>Confirming...</>
+                                <>Signing...</>
                             ) : !isConnected ? (
                                 <>Connect Wallet to Mint</>
                             ) : (
@@ -308,7 +313,17 @@ export default function StudioPage() {
                             {mintMessage && (
                                 <div className="mt-2 p-2 bg-purple-900/30 border border-purple-700/50 rounded text-purple-300 text-xs">
                                     {mintMessage}
-                                    {txHash && (
+                                    {txHash && txHash.startsWith('0x') && txHash.length === 42 && (
+                                        <a 
+                                            href={`https://sepolia.arbiscan.io/address/${txHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-400 hover:text-blue-300 underline block mt-1"
+                                        >
+                                            View address on Arbiscan →
+                                        </a>
+                                    )}
+                                    {txHash && txHash.startsWith('0x') && txHash.length === 66 && (
                                         <a 
                                             href={`https://sepolia.arbiscan.io/tx/${txHash}`}
                                             target="_blank"

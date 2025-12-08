@@ -79,4 +79,4 @@ export const RAYSTYLUS_ABI = [
     }
 ] as const;
 
-export const RAYSTYLUS_ADDRESS = "0xe29f03e8a356c77c9a9f17639e6f4b0626321772";
+export const RAYSTYLUS_ADDRESS = "0x7515c2027cf9c5cee814b0516d794c8e0048b2e3";

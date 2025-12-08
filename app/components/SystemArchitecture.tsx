@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDown, ArrowRight, Box, Cpu, Database, Globe, Layers, Monitor, Zap } from 'lucide-react';
+import { ArrowDown, ArrowRight, Box, Cpu, Database, Globe, Layers, Monitor, Zap, Gift } from 'lucide-react';
 
 export const SystemArchitecture: React.FC = () => {
     return (
@@ -73,22 +73,25 @@ export const SystemArchitecture: React.FC = () => {
 
                         <div className="space-y-3 text-sm">
                             <div className="p-3 rounded bg-ray-mid/10 border border-ray-mid/20">
-                                <div className="font-mono text-xs text-ray-light mb-1">fn renderScene(args)</div>
-                                <div className="text-gray-300 text-xs">Input: Colors, Camera (x,y,z)</div>
+                                <div className="font-mono text-xs text-ray-light mb-1">fn mint() / fn render_token()</div>
+                                <div className="text-gray-300 text-xs">Two-phase: Store params, render on-demand</div>
                             </div>
 
                             <div className="pl-4 border-l-2 border-gray-700 space-y-2">
                                 <div className="text-gray-400 text-xs">
-                                    <span className="text-ray-cream">1. Setup:</span> Initialize Scene & Camera
+                                    <span className="text-ray-cream">1. Mint:</span> Pack 21 bytes, store NFT
                                 </div>
                                 <div className="text-gray-400 text-xs">
-                                    <span className="text-ray-cream">2. Loop:</span> 32x32 Ray Generation
+                                    <span className="text-ray-cream">2. Setup:</span> Unpack data, init scene
                                 </div>
                                 <div className="text-gray-400 text-xs">
-                                    <span className="text-ray-cream">3. Math:</span> Fixed-Point (Scale 1024)
+                                    <span className="text-ray-cream">3. Loop:</span> 32x32 ray generation
                                 </div>
                                 <div className="text-gray-400 text-xs">
-                                    <span className="text-ray-cream">4. Output:</span> Packed Bytes (RGB)
+                                    <span className="text-ray-cream">4. Math:</span> Fixed-point (scale 1024)
+                                </div>
+                                <div className="text-gray-400 text-xs">
+                                    <span className="text-ray-cream">5. Output:</span> BMP + RGB bytes
                                 </div>
                             </div>
                         </div>
@@ -112,25 +115,25 @@ export const SystemArchitecture: React.FC = () => {
                         </div>
                         <h3 className="text-ray-light font-bold mb-2">Ray Tracing</h3>
                         <p className="text-gray-400 text-sm">
-                            Full ray-sphere intersection with diffuse lighting and shadow calculations.
+                            Full ray-sphere intersection with diffuse lighting and shadow calculations on-chain.
                         </p>
                     </div>
                     <div className="bg-[#151a14] border border-gray-800 rounded-lg p-6 hover:-translate-y-1 transition-transform duration-300 group">
                         <div className="w-10 h-10 bg-ray-mid/20 rounded-full flex items-center justify-center mb-4 group-hover:bg-ray-mid/30 transition-colors">
-                            <Database className="text-ray-light" size={20} />
+                            <Gift className="text-ray-light" size={20} />
                         </div>
-                        <h3 className="text-ray-light font-bold mb-2">On-Chain Compute</h3>
+                        <h3 className="text-ray-light font-bold mb-2">NFT Minting</h3>
                         <p className="text-gray-400 text-sm">
-                            1,024 pixel computations executed entirely within the Arbitrum Stylus VM.
+                            Mint unique NFTs with rendering parameters stored permanently on-chain (21 bytes).
                         </p>
                     </div>
                     <div className="bg-[#151a14] border border-gray-800 rounded-lg p-6 hover:-translate-y-1 transition-transform duration-300 group">
                         <div className="w-10 h-10 bg-ray-mid/20 rounded-full flex items-center justify-center mb-4 group-hover:bg-ray-mid/30 transition-colors">
                             <Zap className="text-ray-light" size={20} />
                         </div>
-                        <h3 className="text-ray-light font-bold mb-2">Instant Output</h3>
+                        <h3 className="text-ray-light font-bold mb-2">Ultra-Efficient</h3>
                         <p className="text-gray-400 text-sm">
-                            Direct binary output decoded instantly by the frontend for real-time visualization.
+                            Mint: 5K gas | Render: 120K gas | Traditional EVM: impossible or $5000+.
                         </p>
                     </div>
                 </div>
