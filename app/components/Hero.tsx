@@ -16,8 +16,8 @@ export const Hero = () => {
 
   const titles = [
     { title: "RAYSTYLUS:", subtitle: "ON-CHAIN GRAPHICS" },
-    { title: "RUST + WASM", subtitle: "COMPUTATION" },
-    { title: "NEXT GEN", subtitle: "BLOCKCHAIN TECH" }
+    { title: "RAYTRACING", subtitle: "ON BLOCKCHAIN" },
+    { title: "WEBASSEMBLY", subtitle: "MEETS RUST" },
   ];
 
   const subtitles = [
