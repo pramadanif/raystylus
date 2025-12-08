@@ -19,7 +19,7 @@ export const DemoSection: React.FC = () => {
                         Ready to Render On-Chain?
                     </h2>
                     <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-                        Experience the power of Arbitrum Stylus. Enter the RayStylus Studio to configure your scene, connect your wallet, and run a full Rust-based ray tracer directly on the blockchain.
+                        Experience the power of Arbitrum Stylus. Enter the RayStylus Studio to configure your scene, connect your wallet, render in real-time, and mint your pixel art as permanent on-chain NFTs.
                     </p>
 
                     <Link href="/studio">

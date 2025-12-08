@@ -57,9 +57,8 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 
 | Property | Value |
 |----------|-------|
-| **Contract Address** | `0x36b922c9056c7a2f16c539c0066c5e472455a12c` |
-| **Deployment TX** | `0x46eaf090ad2250d068fb2e5b153bc768d01dd8082a94cc6efb0a4648372b0d69` |
-| **Activation TX** | `0x8a4781ef335132c3e8f408153f9d16bfcade9c55d59996bc6b1dc1cccb9b32b0` |
+| **Contract Address** | `0x8d51f47b21aefa8942e2c1dfb5add8e05c09fbfb` |
+| **Deployment TX** | `0x5c942cd886488f3374b5ab59c742001a57709bd2ac3eb7bf3eea27fe58d56fea` |
 | **Status** | ✅ Active and Ready On-Chain |
 | **Block Explorer** | [Arbiscan](https://sepolia.arbiscan.io/address/0x36b922c9056c7a2f16c539c0066c5e472455a12c)
 
@@ -553,16 +552,42 @@ raystylus/
 2. **Configure Scene**:
    - **Resolution**: Fixed at 32×32 (optimized for gas)
    - **Sphere Color**: Pick a hex color or type directly
-   - **Camera Offset**: Adjust X, Y, Z to move the camera
-3. **Render**: Click "Render Frame"
-4. **View Output**: Real-time pixel display on canvas
-5. **Check Stats**: Gas used, execution time, pixel data
+   - **Background Colors**: Customize gradient top and bottom colors
+   - **Camera Offset**: Adjust X, Y, Z to move the camera around the sphere
+3. **Render**: Click "Render Frame" to execute on-chain ray tracing
+4. **View Output**: Real-time pixel display on canvas (upscaled from 32×32)
+5. **Mint as NFT**: Click "Mint as NFT" to permanently save your render
+   - Wallet confirmation will appear in MetaMask
+   - Transaction is sent to Arbitrum Sepolia blockchain
+   - View your transaction on [Arbiscan](https://sepolia.arbiscan.io) with direct link
+6. **Check Stats**: Monitor gas used, execution time, and transaction details
+
+### Minting Your Renders
+
+After rendering, you can mint your pixel art as an on-chain NFT:
+
+```
+1. Click "Mint as NFT" button (requires wallet connected)
+2. MetaMask popup appears → Confirm transaction
+3. Scene parameters stored immutably on blockchain
+4. View transaction on Arbiscan via the provided link
+5. Token ID generated and displayed in status panel
+```
+
+**What Gets Recorded:**
+- Sphere RGB color values
+- Background gradient colors (top & bottom)
+- Camera position offsets (X, Y, Z)
+- Pixel data hash for uniqueness verification
+- Minter address for ownership tracking
 
 ### Scene Configuration
 
 | Parameter | Default | Range | Effect |
 |-----------|---------|-------|--------|
 | Sphere Color | #EBD5AB | Hex | RGB color of the sphere |
+| BG Color 1 | #FFFFFF | Hex | Gradient top color |
+| BG Color 2 | #5B7FD5 | Hex | Gradient bottom color |
 | Camera X | 0 | -2 to 2 | Left/Right movement |
 | Camera Y | 0 | -2 to 2 | Up/Down movement |
 | Camera Z | 0 | -2 to 2 | Forward/Backward movement |

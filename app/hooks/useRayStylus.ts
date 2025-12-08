@@ -49,7 +49,7 @@ export function useRayStylus() {
             const result = await publicClient.readContract({
                 address: RAYSTYLUS_ADDRESS as `0x${string}`,
                 abi: RAYSTYLUS_ABI,
-                functionName: 'renderScene',
+                functionName: 'render_scene',
                 args: [
                     sphere_r, sphere_g, sphere_b,
                     bg1_r, bg1_g, bg1_b,

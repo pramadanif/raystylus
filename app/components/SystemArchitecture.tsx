@@ -133,6 +133,15 @@ export const SystemArchitecture: React.FC = () => {
                             Direct binary output decoded instantly by the frontend for real-time visualization.
                         </p>
                     </div>
+                    <div className="bg-[#151a14] border border-gray-800 rounded-lg p-6 hover:-translate-y-1 transition-transform duration-300 group">
+                        <div className="w-10 h-10 bg-purple-600/20 rounded-full flex items-center justify-center mb-4 group-hover:bg-purple-600/30 transition-colors">
+                            <Database className="text-purple-400" size={20} />
+                        </div>
+                        <h3 className="text-purple-400 font-bold mb-2">NFT Minting</h3>
+                        <p className="text-gray-400 text-sm">
+                            Mint renders as permanent on-chain NFTs with full scene parameters encoded in blockchain events.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>

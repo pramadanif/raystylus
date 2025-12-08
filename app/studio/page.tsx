@@ -3,12 +3,15 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ConnectButton } from '../components/ConnectButton';
 import { useRayStylus } from '../hooks/useRayStylus';
+import { useRayStylusMint } from '../hooks/useRayStylusMint';
 import { RaccoonLogo } from '../components/Logo';
-import { Settings, Camera, Zap, Activity, Palette } from 'lucide-react';
+import { Settings, Camera, Zap, Activity, Palette, Send, Gift } from 'lucide-react';
 
 export default function StudioPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { render, isLoading, data, gasUsed, execTime, error } = useRayStylus();
+    const { mint, isMinting, tokenId, txHash, isConnected, address, error: mintError } = useRayStylusMint();
+    const [mintMessage, setMintMessage] = useState<string>('');
 
     // Configuration State (Client-side simulation or future contract params)
     const [config, setConfig] = useState({
@@ -92,6 +95,35 @@ export default function StudioPage() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const handleMint = async () => {
+        try {
+            if (!data) {
+                setMintMessage('No render data available. Please render first.');
+                return;
+            }
+
+            setMintMessage('Preparing transaction...');
+            const txHash = await mint({
+                sphereColor: config.sphereColor,
+                bgColor1: config.bgColor1,
+                bgColor2: config.bgColor2,
+                cameraX: config.cameraX,
+                cameraY: config.cameraY,
+                cameraZ: config.cameraZ,
+            });
+
+            if (txHash) {
+                setMintMessage(`✓ Transaction submitted! Hash: ${txHash.slice(0, 10)}...`);
+                console.log('Mint tx hash:', txHash);
+            } else {
+                setMintMessage('Mint transaction cancelled or failed');
+            }
+        } catch (err) {
+            setMintMessage(`Error: ${err instanceof Error ? err.message : 'Mint failed'}`);
+            console.error('Mint error:', err);
+        }
     };
 
     return (
@@ -225,17 +257,38 @@ export default function StudioPage() {
                                 <><Zap size={16} className="mr-2" /> Render Frame</>
                             )}
                         </button>
+
+                        {data && (
+                            <button
+                                onClick={handleMint}
+                                disabled={isMinting || !data || !isConnected}
+                                className={`w-full py-3 mt-2 rounded font-bold transition-all flex items-center justify-center ${isMinting || !isConnected
+                                    ? 'bg-purple-900/50 cursor-not-allowed text-white/50'
+                                    : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20'
+                                    }`}
+                            >
+                                {isMinting ? (
+                                    <>Confirming in wallet...</>
+                                ) : !isConnected ? (
+                                    <>Connect wallet to mint</>
+                                ) : (
+                                    <><Gift size={16} className="mr-2" /> Mint as NFT</>
+                                )}
+                            </button>
+                        )}
+
                         <button
                             onClick={clearRender}
                             className="w-full py-2 mt-2 rounded font-bold transition-all bg-red-900/30 hover:bg-red-900/50 text-red-300 border border-red-700/50 text-sm"
                         >
                             Wipeout Render
                         </button>
+
                         <div className="mt-4 bg-black/40 rounded p-3 text-xs font-mono space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Status</span>
-                                <span className={isLoading ? "text-yellow-500" : error ? "text-red-500" : "text-green-500"}>
-                                    {isLoading ? "Running WASM..." : error ? "Error" : "Ready"}
+                                <span className={isLoading ? "text-yellow-500" : error ? "text-red-500" : data ? "text-green-500" : "text-gray-400"}>
+                                    {isLoading ? "Running WASM..." : error ? "Error" : data ? "Ready to Mint" : "Ready"}
                                 </span>
                             </div>
                             <div className="flex justify-between">
@@ -246,9 +299,35 @@ export default function StudioPage() {
                                 <span className="text-gray-500">Time</span>
                                 <span>{execTime || '-'}</span>
                             </div>
+                            {tokenId && (
+                                <div className="mt-2 p-2 bg-purple-900/30 border border-purple-700/50 rounded text-purple-300 text-xs">
+                                    <div className="font-bold mb-1">✓ NFT Minting Initiated!</div>
+                                    <div className="font-mono">Token ID: {tokenId}</div>
+                                </div>
+                            )}
+                            {mintMessage && (
+                                <div className="mt-2 p-2 bg-blue-900/30 border border-blue-700/50 rounded text-blue-300 text-xs">
+                                    <div>{mintMessage}</div>
+                                    {txHash && (
+                                        <a 
+                                            href={`https://sepolia.arbiscan.io/tx/${txHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-400 hover:text-blue-300 underline block mt-1 text-xs break-all"
+                                        >
+                                            View on Arbiscan →
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                             {error && (
                                 <div className="mt-2 p-2 bg-red-900/30 border border-red-700/50 rounded text-red-300 text-xs">
                                     {error}
+                                </div>
+                            )}
+                            {mintError && (
+                                <div className="mt-2 p-2 bg-red-900/30 border border-red-700/50 rounded text-red-300 text-xs">
+                                    Mint Error: {mintError}
                                 </div>
                             )}
                         </div>

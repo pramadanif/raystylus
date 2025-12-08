@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Cpu, Zap, Layers, Box } from 'lucide-react';
+import { Cpu, Zap, Layers, Box, Gift } from 'lucide-react';
 
 export const HowItWorks: React.FC = () => {
     return (
@@ -96,6 +96,21 @@ export const HowItWorks: React.FC = () => {
                                 <p className="text-gray-400 leading-relaxed">
                                     Because the logic is written in Rust, it can be easily adapted for ZK-proof generation in the future,
                                     allowing for verifiable compute where the rendering happens off-chain and is proved on-chain.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex space-x-6 group">
+                            <div className="flex-shrink-0 mt-1">
+                                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white group-hover:rotate-12 transition-transform">
+                                    <Gift className="h-6 w-6" aria-hidden="true" />
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-2">Mint Your Renders as NFTs</h3>
+                                <p className="text-gray-400 leading-relaxed">
+                                    Every render can be permanently minted as an on-chain NFT. Your pixel art lives forever on Arbitrum Stylus with 
+                                    full scene metadata (colors, camera position, parameters) stored immutably in blockchain events.
                                 </p>
                             </div>
                         </div>
