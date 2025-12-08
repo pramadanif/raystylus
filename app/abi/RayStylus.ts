@@ -14,10 +14,10 @@ export const RAYSTYLUS_ABI = [
             { "name": "cam_y", "type": "int32" },
             { "name": "cam_z", "type": "int32" }
         ],
-        "name": "mint_rendered_image",
+        "name": "mint",
         "outputs": [
             {
-                "type": "uint64",
+                "type": "uint256",
                 "name": ""
             }
         ],
@@ -39,7 +39,7 @@ export const RAYSTYLUS_ABI = [
             { "name": "cam_y", "type": "int32" },
             { "name": "cam_z", "type": "int32" }
         ],
-        "name": "render_scene",
+        "name": "renderScene",
         "outputs": [
             {
                 "type": "bytes",
@@ -48,7 +48,35 @@ export const RAYSTYLUS_ABI = [
         ],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [
+            { "name": "token_id", "type": "uint256" }
+        ],
+        "name": "render_token",
+        "outputs": [
+            {
+                "type": "bytes",
+                "name": ""
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "name": "token_id", "type": "uint256" }
+        ],
+        "name": "owner_of",
+        "outputs": [
+            {
+                "type": "address",
+                "name": ""
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     }
 ] as const;
 
-export const RAYSTYLUS_ADDRESS = "0x2fa02fbc839728fa59188a0db3ebf225ea8d54f6";
+export const RAYSTYLUS_ADDRESS = "0xe29f03e8a356c77c9a9f17639e6f4b0626321772";

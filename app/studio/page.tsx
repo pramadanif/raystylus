@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
+import { useChainId } from 'wagmi';
 import { ConnectButton } from '../components/ConnectButton';
 import { useRayStylus } from '../hooks/useRayStylus';
 import { useRayStylusMint } from '../hooks/useRayStylusMint';
@@ -9,6 +10,7 @@ import { Settings, Camera, Zap, Activity, Palette, Gift } from 'lucide-react';
 
 export default function StudioPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const chainId = useChainId();
     const { render, isLoading, data, gasUsed, execTime, error } = useRayStylus();
     const { mint, isMinting, txHash, isConnected } = useRayStylusMint();
 
@@ -100,21 +102,28 @@ export default function StudioPage() {
 
     const handleMint = async () => {
         if (!data) {
-            setMintMessage('Please render a scene first');
+            setMintMessage('❌ Please render a scene first');
             return;
         }
         if (!isConnected) {
-            setMintMessage('Please connect your wallet first');
+            setMintMessage('❌ Please connect your wallet first');
             return;
         }
 
-        setMintMessage('Processing mint transaction...');
+        setMintMessage('⏳ Sending transaction to Arbitrum Sepolia...');
+        console.log('🟡 Starting mint with config:', config);
+        
         const txHash = await mint(config);
         
-        if (txHash) {
-            setMintMessage(`✓ Minted! Tx: ${txHash.slice(0, 10)}...`);
+        if (txHash && txHash.startsWith('0x')) {
+            console.log('✅ Got TX hash:', txHash);
+            setMintMessage(`⏳ Waiting for confirmation... TX: ${txHash.slice(0, 10)}...`);
+            // Give it 5 seconds for receipt to propagate
+            await new Promise(r => setTimeout(r, 5000));
+            setMintMessage(`✓ Minted! TX: ${txHash}`);
         } else {
-            setMintMessage('Mint failed. Check console for details.');
+            console.error('❌ Invalid or no TX hash returned:', txHash);
+            setMintMessage(`❌ Mint failed or no TX hash. Check console. Got: ${txHash}`);
         }
     };
 
@@ -129,7 +138,13 @@ export default function StudioPage() {
                     <span className="font-bold text-lg text-white">RayStylus Studio</span>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <div className="text-xs font-mono text-gray-500">Arbitrum Sepolia</div>
+                    <div className="text-xs font-mono text-gray-500">
+                        {chainId === 421614 ? (
+                            <span className="text-green-400">✓ Arbitrum Sepolia (421614)</span>
+                        ) : (
+                            <span className="text-red-400">⚠ Wrong Chain: {chainId}</span>
+                        )}
+                    </div>
                     <ConnectButton />
                 </div>
             </header>

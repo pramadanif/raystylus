@@ -54,7 +54,9 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 ### 🌐 Deployment Details
 
 **Network:** Arbitrum Sepolia (Chain ID: 421614)
-
+deployed code at address: 0xe29f03e8a356c77c9a9f17639e6f4b0626321772
+deployment tx hash: 0x8a0d49b9bd75bb156e153f894c90f5d9f59e799cf5c74d967f8351f5f284d9b9
+contract activated and ready onchain with tx hash: 0xa9a5f525aeece26a5bf6d075bc04f73d9631e3d4e5415aab9d45b207c1f0d986
 | Property | Value |
 |----------|-------|
 | **Contract Address** | `0x36b922c9056c7a2f16c539c0066c5e472455a12c` |
