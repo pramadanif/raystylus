@@ -5,10 +5,12 @@ import { WagmiProvider, createConfig, http } from 'wagmi';
 import { arbitrumSepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const rpcUrl = process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC || 'https://arbitrum-sepolia-rpc.publicnode.com';
+
 const config = createConfig({
     chains: [arbitrumSepolia],
     transports: {
-        [arbitrumSepolia.id]: http(),
+        [arbitrumSepolia.id]: http(rpcUrl),
     },
 });
 

@@ -54,14 +54,12 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 ### 🌐 Deployment Details
 
 **Network:** Arbitrum Sepolia (Chain ID: 421614)
-
 | Property | Value |
 |----------|-------|
-| **Contract Address** | `0x36b922c9056c7a2f16c539c0066c5e472455a12c` |
-| **Deployment TX** | `0x46eaf090ad2250d068fb2e5b153bc768d01dd8082a94cc6efb0a4648372b0d69` |
-| **Activation TX** | `0x8a4781ef335132c3e8f408153f9d16bfcade9c55d59996bc6b1dc1cccb9b32b0` |
+| **Contract Address** | `0x762fa193c75b246efaf274e7a48f71357960ccd8` |
+| **TX Hash** | `0xded042c4c47fcb0842fdc486e9bafed8e902cad731b6ba8e35aa4f9e273e6ace` |
 | **Status** | ✅ Active and Ready On-Chain |
-| **Block Explorer** | [Arbiscan](https://sepolia.arbiscan.io/address/0x36b922c9056c7a2f16c539c0066c5e472455a12c)
+| **Block Explorer** | [Arbiscan](https://sepolia.arbiscan.io/address/0x762fa193c75b246efaf274e7a48f71357960ccd8)
 
 ---
 
@@ -168,41 +166,175 @@ graph LR
 
 ### Overview
 
-The RayStylus smart contract is the core of this project—a sophisticated ray tracing engine written in Rust and deployed as a WebAssembly (WASM) contract on Arbitrum Stylus. It performs real-time 3D rendering computations directly on-chain with deterministic results.
+The RayStylus smart contract is a sophisticated ray tracing engine written in Rust and deployed as a WebAssembly (WASM) contract on Arbitrum Stylus. It provides three main functions:
 
-### Contract ABI
+1. **`mint()`** - Create NFTs with rendering parameters (new!)
+2. **`render_token()`** - On-demand rendering from stored parameters
+3. **`owner_of()`** - Query token ownership
 
-#### Main Function: `renderScene`
+This **two-phase design** separates minting (cheap, parameters only) from rendering (expensive, on-demand).
 
-```solidity
-function renderScene(
-    uint8 sphere_r,        // Red channel of sphere (0-255)
-    uint8 sphere_g,        // Green channel of sphere (0-255)
-    uint8 sphere_b,        // Blue channel of sphere (0-255)
-    uint8 bg_color1_r,     // Red of top background color (0-255)
-    uint8 bg_color1_g,     // Green of top background color (0-255)
-    uint8 bg_color1_b,     // Blue of top background color (0-255)
-    uint8 bg_color2_r,     // Red of bottom background color (0-255)
-    uint8 bg_color2_g,     // Green of bottom background color (0-255)
-    uint8 bg_color2_b,     // Blue of bottom background color (0-255)
-    int32 cam_x,           // Camera offset X-axis (fixed-point scale 1024)
-    int32 cam_y,           // Camera offset Y-axis (fixed-point scale 1024)
-    int32 cam_z            // Camera offset Z-axis (fixed-point scale 1024)
-) external pure returns (bytes memory)
+---
+
+### Contract Functions
+
+#### 1️⃣ **`mint(sphere_r, sphere_g, sphere_b, bg_color1_r, bg_color1_g, bg_color1_b, bg_color2_r, bg_color2_g, bg_color2_b, cam_x, cam_y, cam_z) → U256`**
+
+**Purpose:** Mint a unique NFT with ray-traced rendering parameters stored on-chain
+
+**Parameters:**
+| Parameter | Type | Range | Description |
+|-----------|------|-------|-------------|
+| `sphere_r, sphere_g, sphere_b` | `uint8` | 0-255 | RGB color of the sphere |
+| `bg_color1_r/g/b` | `uint8` | 0-255 | Top gradient background color |
+| `bg_color2_r/g/b` | `uint8` | 0-255 | Bottom gradient background color |
+| `cam_x, cam_y, cam_z` | `int32` | -2048 to 2048 | Camera offset (scale 1024) |
+
+**Returns:** `U256` - Token ID of minted NFT
+
+**Gas Cost:** ~5,000-10,000 gas (parameters only, no rendering)
+
+**Behavior:**
+- Increments `total_supply` counter
+- Stores caller address as token owner
+- Packs 21 bytes of configuration data (9 color bytes + 12 camera bytes in little-endian)
+- Stores data in contract's persistent storage
+- **Fire-and-forget design**: Parameters encoded once, rendering done on-demand later
+
+**Data Stored (21 bytes):**
+```
+Bytes 0-8:   RGB Colors (3 bytes each)
+  [0] sphere_r        [3] bg_color1_r     [6] bg_color2_r
+  [1] sphere_g        [4] bg_color1_g     [7] bg_color2_g
+  [2] sphere_b        [5] bg_color1_b     [8] bg_color2_b
+
+Bytes 9-20:  Camera (4 bytes each, little-endian i32)
+  [9-12]   cam_x (as little-endian bytes)
+  [13-16]  cam_y (as little-endian bytes)
+  [17-20]  cam_z (as little-endian bytes)
 ```
 
-**Return Value:** 
-- `bytes` array of 3,072 bytes (32×32×3 RGB pixels)
-- Each pixel is encoded as 3 consecutive bytes: [R, G, B]
+**Frontend Example:**
+```typescript
+const result = await mint(config);
+// Returns sender address for Arbiscan verification
+// Transaction is submitted to mempool immediately
+```
 
-#### Function Characteristics
+---
 
-- **State Mutability:** `pure` (read-only, no blockchain state access)
-- **Gas Cost:** ~120,000-150,000 gas per execution
-- **Network:** Arbitrum Sepolia (Testnet)
-- **Contract Type:** Stylus (WASM)
+#### 2️⃣ **`render_token(token_id) → Bytes`**
 
-### Contract Parameters Explained
+**Purpose:** Retrieve fully rendered BMP image for a minted token (on-demand rendering)
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `token_id` | `U256` | The token ID to render |
+
+**Returns:** `Bytes` - Complete BMP image file (3,126 bytes total)
+- 54-byte BMP header
+- 3,072 pixel bytes (32×32 × 3 RGB)
+
+**Gas Cost:** ~120,000-150,000 gas (full ray tracing)
+
+**Execution Flow:**
+1. Retrieve 21-byte config from storage
+2. Unpack colors and camera position
+3. Execute ray tracing algorithm for all 1,024 pixels
+4. Generate BMP file header
+5. Return as bytes
+
+**Output Example:**
+```
+Total: 3,126 bytes
+[0-53]     BMP Header (54 bytes)
+[54-3125]  Pixel Data (3,072 bytes)
+           Each pixel: 3 bytes (RGB)
+           Format: BGR (reversed for BMP format)
+```
+
+---
+
+#### 3️⃣ **`owner_of(token_id) → Address`**
+
+**Purpose:** Retrieve the owner address of a specific token
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `token_id` | `U256` | The token ID to query |
+
+**Returns:** `Address` - Wallet address that minted the token
+
+**Gas Cost:** ~2,000-3,000 gas (storage read)
+
+---
+
+### Contract Data Structure
+
+```rust
+pub struct Contract {
+    // Maps token_id → owner_address
+    pub owners: StorageMap<U256, StorageAddress>,
+    
+    // Maps token_id → 21-byte packed config
+    pub token_data: StorageMap<U256, StorageBytes>,
+    
+    // Total number of minted tokens
+    pub total_supply: StorageU256,
+}
+```
+
+---
+
+### Contract Interaction Example
+
+**Using wagmi/viem (Frontend):**
+
+```typescript
+// Mint NFT
+const txHash = await writeContractAsync({
+  address: contractAddress,
+  abi: RAYSTYLUS_ABI,
+  functionName: 'mint',
+  args: [
+    235, 213, 171,  // Sphere: beige
+    255, 255, 255,  // BG top: white
+    91, 127, 213,   // BG bottom: blue
+    0, 0, 0         // Camera: center
+  ]
+});
+
+// Render a token (public, anyone can call)
+const pixels = await publicClient.readContract({
+  address: contractAddress,
+  abi: RAYSTYLUS_ABI,
+  functionName: 'render_token',
+  args: [BigInt(0)] // Token ID 0
+});
+
+// Check ownership
+const owner = await publicClient.readContract({
+  address: contractAddress,
+  abi: RAYSTYLUS_ABI,
+  functionName: 'owner_of',
+  args: [BigInt(0)]
+});
+```
+
+---
+
+### Contract Verification
+
+View the contract on Arbiscan:
+- **Address:** [0x762fa193c75b246efaf274e7a48f71357960ccd8](https://sepolia.arbiscan.io/address/0x762fa193c75b246efaf274e7a48f71357960ccd8)
+- **Deployment TX:** [0xded042c4c47fcb0842fdc486e9bafed8e902cad731b6ba8e35aa4f9e273e6ace](https://sepolia.arbiscan.io/tx/0xded042c4c47fcb0842fdc486e9bafed8e902cad731b6ba8e35aa4f9e273e6ace)
+- **Status:** ✅ Active and Ready
+
+---
+
+### Parameter Explanation
 
 #### Sphere Color Parameters (`sphere_r`, `sphere_g`, `sphere_b`)
 - **Type:** uint8 (0-255)
@@ -220,6 +352,43 @@ function renderScene(
 - **Example:**
   ```
   bg_color1 = (255, 255, 255)  // White at top
+  bg_color2 = (100, 100, 100)  // Gray at bottom
+  // Creates smooth white-to-gray gradient from top to bottom
+  ```
+
+#### Camera Offset Parameters (`cam_x`, `cam_y`, `cam_z`)
+- **Type:** int32 (fixed-point format, scale 1024)
+- **Conversion:** Actual value = parameter / 1024
+- **Valid Range:** Typically -2 to 2 (representing -2.0 to 2.0 in world space)
+- **Coordinate System:**
+  - **X-axis:** Left (-) / Right (+)
+  - **Y-axis:** Down (-) / Up (+)
+  - **Z-axis:** Away (-) / Closer (+) to camera
+- **Default Camera Position:** (0, 0, 2.5) in world space
+- **Example:** To move camera right by 1.0 unit, set `cam_x = 1024`
+
+---
+
+### Internal Contract Architecture
+
+#### Scene Setup
+
+```
+Fixed-Point Scale: 1024 (1.0 = 1024 units)
+
+Camera Position (World Space):
+  - Default: (0, 0, 2.5)
+  - Adjusted: (cam_x*1024, cam_y*1024, (2.5*1024 + cam_z*1024))
+
+Sphere Position: (0, 0, 0) [center of world]
+Sphere Radius: 1.0
+
+Light Source Direction: (1, 1, 1) normalized
+  - Creates illumination from diagonal top-right-front
+  
+Render Resolution: 32×32 pixels = 1,024 total pixels
+Output Format: RGB bytes (1,024 pixels × 3 bytes = 3,072 bytes total)
+```
   bg_color2 = (100, 100, 100)  // Gray at bottom
   // Creates smooth white-to-gray gradient from top to bottom
   ```
@@ -549,23 +718,103 @@ raystylus/
 
 ### In the Studio
 
-1. **Connect Wallet**: Click "Connect Wallet" in the header
-2. **Configure Scene**:
-   - **Resolution**: Fixed at 32×32 (optimized for gas)
-   - **Sphere Color**: Pick a hex color or type directly
-   - **Camera Offset**: Adjust X, Y, Z to move the camera
-3. **Render**: Click "Render Frame"
-4. **View Output**: Real-time pixel display on canvas
-5. **Check Stats**: Gas used, execution time, pixel data
+#### Step 1: Connect Wallet
+- Click **"Connect Wallet"** in the header
+- Select MetaMask or your preferred wallet
+- Ensure you're on **Arbitrum Sepolia (Chain ID: 421614)**
+- Confirm connection in your wallet extension
 
-### Scene Configuration
+#### Step 2: Configure Your Scene
+- **Sphere Color**: Click the color picker or type hex value directly
+  - Default: `#EBD5AB` (beige)
+  - Examples: `#FF0000` (red), `#00FF00` (green)
+- **Background Gradient (Top)**: Upper color of the gradient
+  - Default: `#FFFFFF` (white)
+- **Background Gradient (Bottom)**: Lower color of the gradient
+  - Default: `#5B7FD5` (blue)
+- **Camera Position**: Fine-tune the viewpoint
+  - X-axis (Left/Right): -2.0 to 2.0
+  - Y-axis (Up/Down): -2.0 to 2.0
+  - Z-axis (Forward/Back): -2.0 to 2.0
+  - Default: (0, 0, 0) - centered
 
-| Parameter | Default | Range | Effect |
-|-----------|---------|-------|--------|
-| Sphere Color | #EBD5AB | Hex | RGB color of the sphere |
-| Camera X | 0 | -2 to 2 | Left/Right movement |
-| Camera Y | 0 | -2 to 2 | Up/Down movement |
-| Camera Z | 0 | -2 to 2 | Forward/Backward movement |
+#### Step 3: Render the Scene
+1. Click **"Render Frame"** button
+2. Wait for on-chain computation (~2-5 seconds)
+3. View gas used and execution time in the stats panel
+4. Real-time pixel data displayed on the canvas
+
+#### Step 4: Mint Your NFT (New!)
+1. Once rendered, the **"Mint as NFT"** button becomes active
+2. Click **"Mint as NFT"**
+3. Transaction is submitted to the mempool
+4. Your configuration is stored on-chain as a unique token
+5. Token ID is generated automatically
+6. Click the **Arbiscan link** to verify your transaction
+   - Link points to `/address/{yourWalletAddress}`
+   - Shows all your recent transactions
+
+#### Step 5: View Your NFT
+- Your minted NFT is now stored on Arbitrum Sepolia
+- Configuration is permanently saved
+- Anyone can call `render_token(tokenId)` to generate the full image
+- You own the metadata on-chain
+
+### Studio Controls Reference
+
+| Control | Purpose | Default |
+|---------|---------|---------|
+| **Sphere Color** | RGB of sphere object | #EBD5AB (beige) |
+| **BG Color 1** | Gradient top color | #FFFFFF (white) |
+| **BG Color 2** | Gradient bottom color | #5B7FD5 (blue) |
+| **Camera X** | Left/Right offset | 0 |
+| **Camera Y** | Up/Down offset | 0 |
+| **Camera Z** | Forward/Back offset | 0 |
+| **Render Frame** | Start on-chain computation | - |
+| **Mint as NFT** | Create permanent token | - |
+| **Wipeout Render** | Clear canvas | - |
+
+### Minting Workflow
+
+```
+1. Configure Scene (Colors + Camera)
+   ↓
+2. Click "Render Frame"
+   ↓
+3. WASM contract executes ray tracing
+   ↓
+4. 3,072 bytes of pixel data returned
+   ↓
+5. Canvas displays result instantly
+   ↓
+6. Click "Mint as NFT"
+   ↓
+7. Your config stored as Token (21 bytes packed)
+   ↓
+8. NFT created with token_id
+   ↓
+9. Link to Arbiscan shows transaction
+   ↓
+10. On-demand rendering available forever
+```
+
+### Advanced: Rendering Stored NFTs
+
+To render a previously minted NFT:
+
+```typescript
+// Get the BMP image for token_id = 42
+const bmpData = await publicClient.readContract({
+  address: '0x762fa193c75b246efaf274e7a48f71357960ccd8',
+  abi: RAYSTYLUS_ABI,
+  functionName: 'render_token',
+  args: [BigInt(42)]
+});
+
+// Convert hex to pixels and display
+const pixels = hexToPixels(bmpData);
+drawToCanvas(pixels, canvas);
+```
 
 ---
 
@@ -575,19 +824,25 @@ raystylus/
 
 | Metric | Stylus | Traditional EVM | Improvement |
 |--------|--------|-----------------|-------------|
-| **Gas Cost (32×32)** | ~120K | $5,000+ | 100x+ cheaper |
+| **Gas Cost (Render)** | ~120K | $5,000+ | 100x+ cheaper |
+| **Gas Cost (Mint)** | ~5K | N/A | Light-weight |
 | **Computation Time** | ~120ms | Timeout/Fail | Instant |
 | **Math Precision** | Fixed-Point (Scale 1024) | Workarounds | Native |
 | **Code Size** | 5.2 KiB | N/A | 50x smaller |
-| **Contract Address** | 0x9db6... | - | Arbitrum Sepolia |
+| **Network** | Arbitrum Sepolia | - | Production-ready |
 
 ### Gas Breakdown
 
-- **Setup & Loop**: ~40,000 gas
-- **Ray Intersections**: ~50,000 gas
-- **Lighting Calculations**: ~25,000 gas
-- **Encoding & Return**: ~5,000 gas
-- **Total per Frame**: ~120,000 gas
+**Render Operation (~120K gas):**
+- Setup & Loop: ~40,000 gas
+- Ray Intersections: ~50,000 gas
+- Lighting Calculations: ~25,000 gas
+- Encoding & Return: ~5,000 gas
+
+**Mint Operation (~5K gas):**
+- Total supply increment: ~1,000 gas
+- Storage writes (21 bytes): ~4,000 gas
+- No rendering, pure storage
 
 ---
 
@@ -595,7 +850,7 @@ raystylus/
 
 ### Contract Implementation Details
 
-#### Complete Function Signature
+#### Complete Function Signatures
 
 ```rust
 #![cfg_attr(target_arch = "wasm32", no_main)]
@@ -605,15 +860,23 @@ extern crate alloc;
 use alloc::vec::Vec;
 use stylus_sdk::prelude::*;
 use stylus_sdk::abi::Bytes;
+use stylus_sdk::alloy_primitives::{Address, U256};
+use stylus_sdk::msg;
+use stylus_sdk::storage::{StorageMap, StorageBytes, StorageU256, StorageAddress};
 
 #[storage]
 #[entrypoint]
-pub struct Contract;
+pub struct Contract {
+    pub owners: StorageMap<U256, StorageAddress>,
+    pub token_data: StorageMap<U256, StorageBytes>,
+    pub total_supply: StorageU256,
+}
 
 #[public]
 impl Contract {
-    pub fn renderScene(
-        &self,
+    // Mint NFT with rendering parameters
+    pub fn mint(
+        &mut self,
         sphere_r: u8,
         sphere_g: u8,
         sphere_b: u8,
@@ -626,9 +889,21 @@ impl Contract {
         cam_x: i32,
         cam_y: i32,
         cam_z: i32,
-    ) -> Bytes {
-        // Implementation details below...
+    ) -> U256 {
+        // Implementation...
     }
+    
+    // Render stored NFT
+    pub fn render_token(&self, token_id: U256) -> Bytes {
+        // Implementation...
+    }
+    
+    // Check token ownership
+    pub fn owner_of(&self, token_id: U256) -> Address {
+        // Implementation...
+    }
+}
+```
 }
 ```
 

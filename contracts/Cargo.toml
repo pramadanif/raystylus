@@ -4,12 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Stylus SDK standard
 stylus-sdk = "0.7.0"
+
+# Memory allocator (penting untuk WASM)
 mini-alloc = "0.4.2"
+
+# Math utilities
+# default-features = false sangat KRUSIAL agar kompilasi tidak error
+num-integer = { version = "0.1.45", default-features = false }
+
+# Dependencies tambahan (jika Anda memakainya)
 ruint = "=1.16.0"
 indexmap = "2.12"
 fixed = "1.27.0"
-alloy-primitives = "0.8"
+alloy-primitives = { version = "0.8", default-features = false } 
 
 [dev-dependencies]
 
@@ -23,10 +32,10 @@ crate-type = ["cdylib", "rlib"]
 name = "check"
 path = "src/bin/check.rs"
 
+# Optimasi agar ukuran contract kecil (Hemat Gas saat deploy)
 [profile.release]
 codegen-units = 1
 strip = true
 lto = true
 panic = "abort"
 opt-level = "z"
-
