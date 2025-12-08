@@ -3,14 +3,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ConnectButton } from '../components/ConnectButton';
 import { useRayStylus } from '../hooks/useRayStylus';
+import { useRayStylusMint } from '../hooks/useRayStylusMint';
 import { RaccoonLogo } from '../components/Logo';
-import { Settings, Camera, Zap, Activity, Palette } from 'lucide-react';
+import { Settings, Camera, Zap, Activity, Palette, Gift } from 'lucide-react';
 
 export default function StudioPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { render, isLoading, data, gasUsed, execTime, error } = useRayStylus();
+    const { mint, isMinting, txHash, isConnected } = useRayStylusMint();
 
-    // Configuration State (Client-side simulation or future contract params)
+    // Configuration State - serves as DNA for rendered images
     const [config, setConfig] = useState({
         resolution: '32x32',
         sphereColor: '#EBD5AB',
@@ -20,6 +22,8 @@ export default function StudioPage() {
         cameraY: 0,
         cameraZ: 0,
     });
+
+    const [mintMessage, setMintMessage] = useState<string>('');
 
     // Render Effect
     useEffect(() => {
@@ -92,6 +96,26 @@ export default function StudioPage() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const handleMint = async () => {
+        if (!data) {
+            setMintMessage('Please render a scene first');
+            return;
+        }
+        if (!isConnected) {
+            setMintMessage('Please connect your wallet first');
+            return;
+        }
+
+        setMintMessage('Processing mint transaction...');
+        const txHash = await mint(config);
+        
+        if (txHash) {
+            setMintMessage(`✓ Minted! Tx: ${txHash.slice(0, 10)}...`);
+        } else {
+            setMintMessage('Mint failed. Check console for details.');
+        }
     };
 
     return (
@@ -225,12 +249,32 @@ export default function StudioPage() {
                                 <><Zap size={16} className="mr-2" /> Render Frame</>
                             )}
                         </button>
+
+                        <button
+                            onClick={handleMint}
+                            disabled={isMinting || !data || !isConnected}
+                            className={`w-full py-3 mt-2 rounded font-bold transition-all flex items-center justify-center ${
+                                isMinting || !data || !isConnected
+                                    ? 'bg-purple-900/30 cursor-not-allowed text-white/50'
+                                    : 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/20'
+                            }`}
+                        >
+                            {isMinting ? (
+                                <>Confirming...</>
+                            ) : !isConnected ? (
+                                <>Connect Wallet to Mint</>
+                            ) : (
+                                <><Gift size={16} className="mr-2" /> Mint as NFT</>
+                            )}
+                        </button>
+
                         <button
                             onClick={clearRender}
                             className="w-full py-2 mt-2 rounded font-bold transition-all bg-red-900/30 hover:bg-red-900/50 text-red-300 border border-red-700/50 text-sm"
                         >
                             Wipeout Render
                         </button>
+
                         <div className="mt-4 bg-black/40 rounded p-3 text-xs font-mono space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Status</span>
@@ -246,6 +290,21 @@ export default function StudioPage() {
                                 <span className="text-gray-500">Time</span>
                                 <span>{execTime || '-'}</span>
                             </div>
+                            {mintMessage && (
+                                <div className="mt-2 p-2 bg-purple-900/30 border border-purple-700/50 rounded text-purple-300 text-xs">
+                                    {mintMessage}
+                                    {txHash && (
+                                        <a 
+                                            href={`https://sepolia.arbiscan.io/tx/${txHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-400 hover:text-blue-300 underline block mt-1"
+                                        >
+                                            View on Arbiscan →
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                             {error && (
                                 <div className="mt-2 p-2 bg-red-900/30 border border-red-700/50 rounded text-red-300 text-xs">
                                     {error}
