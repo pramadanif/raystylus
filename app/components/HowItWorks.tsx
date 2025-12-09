@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Cpu, Zap, Layers, Box } from 'lucide-react';
+import { Cpu, Zap, Layers, Box, Globe } from 'lucide-react'; // Added Globe icon
 
 export const HowItWorks: React.FC = () => {
     const sectionRef = useRef<HTMLDivElement>(null);
@@ -39,15 +39,15 @@ export const HowItWorks: React.FC = () => {
                         : 'opacity-0 translate-y-10'
                 }`}>
                     <h2 className="text-3xl md:text-5xl font-bold text-ray-cream mb-6">
-                        Under the Hood: Stylus Architecture
+                        UNDER THE HOOD: THE COMPUTE ENGINE
                     </h2>
                     <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-                        Traditional EVM contracts struggle with heavy math. RayStylus leverages Arbitrum Stylus to run compiled Rust code at native speeds.
+                        RayStylus is not a contract; it's a Proof-of-Compute architecture that redefines on-chain performance and user experience.
                     </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-12 items-center">
-                    {/* Visual Diagram */}
+                    {/* Visual Diagram (No change needed here, the visuals are excellent) */}
                     <div 
                         className={`relative bg-[#1b211a] p-8 rounded-2xl border border-ray-mid/20 shadow-2xl transition-all duration-1000 ${
                             isVisible 
@@ -133,9 +133,9 @@ export const HowItWorks: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Explanation */}
+                    {/* Explanation (Updated Narrative Content) */}
                     <div className="space-y-12">
-                        {/* Feature 1 */}
+                        {/* Feature 1: Technical Superiority (Why it beats Pundle's simple math) */}
                         <div 
                             className={`flex space-x-6 group transition-all duration-1000 ${
                                 isVisible 
@@ -152,16 +152,15 @@ export const HowItWorks: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Why not Solidity?</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">Computational Dominance</h3>
                                 <p className="text-gray-400 leading-relaxed">
-                                    Ray tracing involves solving quadratic equations thousands of times per image.
-                                    In Solidity, this would consume millions of gas and likely hit the block gas limit instantly.
-                                    Stylus allows us to use standard Rust libraries and fixed-point math efficiently.
+                                    RayStylus executes massive computational throughput running thousands of vector algebra and quadratic equations per transaction. 
+                                    This is a far heavier benchmark than single formula financial models, proving Stylus's ability to handle the most demanding physics and array processing tasks.
                                 </p>
                             </div>
                         </div>
 
-                        {/* Feature 2 */}
+                        {/* Feature 2: UX and Interactivity (The Kill Shot) */}
                         <div 
                             className={`flex space-x-6 group transition-all duration-1000 ${
                                 isVisible 
@@ -174,14 +173,14 @@ export const HowItWorks: React.FC = () => {
                         >
                             <div className="flex-shrink-0 mt-1">
                                 <div className="flex items-center justify-center h-12 w-12 rounded-md bg-ray-mid text-white group-hover:rotate-12 transition-transform">
-                                    <Cpu className="h-6 w-6" aria-hidden="true" />
+                                    <Globe className="h-6 w-6" aria-hidden="true" />
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Zero-Knowledge Ready</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">Zero-Lag Interactive Studio</h3>
                                 <p className="text-gray-400 leading-relaxed">
-                                    Because the logic is written in Rust, it can be easily adapted for ZK-proof generation in the future,
-                                    allowing for verifiable compute where the rendering happens off-chain and is proved on-chain.
+                                    We defeated blockchain latency. By utilizing instantaneous `eth_call` simulation, users can adjust Color, Position (XYZ), and Background in real-time. 
+                                    This is the first true Zero-Lag UX in a dApp, proving Stylus can deliver Web2 standards of interactivity.
                                 </p>
                             </div>
                         </div>

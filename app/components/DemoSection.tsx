@@ -120,23 +120,43 @@ export const DemoSection: React.FC = () => {
                         transform: scale(1);
                     }
                 }
+                
+                /* --- NEW ENHANCEMENTS KEYFRAMES --- */
 
-                @keyframes shimmer {
+                @keyframes textGlitch {
+                    0% {
+                        text-shadow: 2px 2px 0 #627D41, -2px -2px 0 #151a14;
+                        opacity: 0.95;
+                    }
+                    5% {
+                        text-shadow: -2px 0px 0 #627D41, 2px 0px 0 #151a14;
+                        opacity: 0.98;
+                    }
+                    100% {
+                        text-shadow: 0 0 0 transparent, 0 0 0 transparent;
+                        opacity: 1;
+                    }
+                }
+                
+                @keyframes intenseShimmer {
                     0%, 100% {
-                        box-shadow: 0 0 20px rgba(98, 129, 65, 0.4), inset 0 0 20px rgba(98, 129, 65, 0.1);
+                        box-shadow: 0 0 30px rgba(98, 129, 65, 0.6), inset 0 0 15px rgba(98, 129, 65, 0.2);
                     }
                     50% {
-                        box-shadow: 0 0 40px rgba(139, 174, 102, 0.6), inset 0 0 30px rgba(139, 174, 102, 0.2);
+                        box-shadow: 0 0 50px rgba(139, 174, 102, 0.9), inset 0 0 25px rgba(139, 174, 102, 0.4);
                     }
                 }
 
-                @keyframes orbitIcon {
-                    from {
-                        transform: rotate(0deg) translateX(60px) rotate(0deg);
-                    }
-                    to {
-                        transform: rotate(360deg) translateX(60px) rotate(-360deg);
-                    }
+                /* --- NEW ANIMATION CLASSES --- */
+
+                .animate-glitch-text {
+                    animation: textGlitch 5s linear infinite;
+                }
+                .animate-glitch-text-second {
+                    animation: textGlitch 5s linear infinite reverse;
+                }
+                .animate-intenseShimmer {
+                    animation: intenseShimmer 3s ease-in-out infinite;
                 }
 
                 .animate-slideUp {
@@ -147,10 +167,6 @@ export const DemoSection: React.FC = () => {
                     animation: scaleIn 0.6s ease-out forwards;
                 }
 
-                .animate-shimmer {
-                    animation: shimmer 3s ease-in-out infinite;
-                }
-
                 .animate-orbit {
                     animation: orbitIcon 20s linear infinite;
                 }
@@ -158,7 +174,7 @@ export const DemoSection: React.FC = () => {
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
                 <div className="space-y-8">
-                    {/* Heading */}
+                    {/* Heading (Updated with Glitch Effect) */}
                     <div
                         className={`transition-all duration-1000 ${
                             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -167,9 +183,10 @@ export const DemoSection: React.FC = () => {
                             transitionDelay: isVisible ? '0.1s' : '0s'
                         }}
                     >
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-ray-cream mb-6 tracking-tight leading-tight">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-ray-cream mb-6 tracking-tight leading-tight animate-glitch-text">
                             Ready to Render
-                            <span className="block text-ray-mid mt-2">On-Chain?</span>
+                            {/* Glitch text effect applied here */}
+                            <span className="block text-ray-mid mt-2 animate-glitch-text-second">On-Chain?</span>
                         </h2>
                     </div>
 
@@ -182,10 +199,10 @@ export const DemoSection: React.FC = () => {
                             transitionDelay: isVisible ? '0.2s' : '0s'
                         }}
                     >
-                        Experience the power of Arbitrum Stylus. Enter the RayStylus Studio to configure your scene, connect your wallet, and run a full Rust-based ray tracer directly on the blockchain.
+                        Experience the power of Arbitrum Stylus. Enter the RayStylus Studio to configure your scene in real time, connect your wallet, and run a full Rust-based ray tracer directly on the blockchain.
                     </p>
 
-                    {/* CTA Button */}
+                    {/* CTA Button (Updated with Intense Shimmer) */}
                     <div
                         className={`transition-all duration-1000 ${
                             isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
@@ -195,7 +212,7 @@ export const DemoSection: React.FC = () => {
                         }}
                     >
                         <Link href="/studio">
-                            <button className="group relative px-8 md:px-12 py-4 md:py-5 bg-ray-mid hover:bg-ray-light text-white font-bold text-lg rounded-xl transition-all duration-300 hover:scale-105 flex items-center mx-auto gap-3 overflow-hidden animate-shimmer">
+                            <button className="group relative px-8 md:px-12 py-4 md:py-5 bg-ray-mid hover:bg-ray-light text-white font-bold text-lg rounded-xl transition-all duration-300 hover:scale-105 flex items-center mx-auto gap-3 overflow-hidden animate-intenseShimmer">
                                 {/* Background shine effect */}
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
 
@@ -212,7 +229,7 @@ export const DemoSection: React.FC = () => {
                         </Link>
                     </div>
 
-                    {/* Status Badge */}
+                    {/* Status Badge (Updated with Zero-Lag Claim) */}
                     <div
                         className={`transition-all duration-1000 ${
                             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -223,6 +240,9 @@ export const DemoSection: React.FC = () => {
                     >
                         <div className="p-6 bg-gradient-to-r from-ray-mid/10 via-transparent to-ray-light/10 backdrop-blur-md border border-ray-mid/30 rounded-xl inline-block hover:border-ray-mid/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(98,129,65,0.2)]">
                             <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-sm font-mono text-gray-400">
+                                <div className="hidden md:block w-px h-4 bg-gray-700"></div>
+
+                                {/* Existing Badges */}
                                 <div className="flex items-center group/item">
                                     <span className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
                                     <span className="group-hover/item:text-gray-300 transition-colors">Arbitrum Sepolia</span>
