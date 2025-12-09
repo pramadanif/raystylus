@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useChainId } from 'wagmi';
-import { ConnectButton } from '../components/ConnectButton';
+import { ConnectButtonWrapper } from '../components/ConnectButtonWrapper';
 import { useRayStylus } from '../hooks/useRayStylus';
 import { useRayStylusMint } from '../hooks/useRayStylusMint';
 import { RaccoonLogo } from '../components/Logo';
@@ -208,7 +208,7 @@ export default function StudioPage() {
                             {chainId === 421614 ? 'Arbitrum Sepolia' : 'Wrong Network'}
                         </span>
                     </div>
-                    <ConnectButton />
+                    <ConnectButtonWrapper />
                 </div>
             </header>
 
@@ -310,8 +310,8 @@ export default function StudioPage() {
                                 <div className={`mt-3 p-2 rounded border-l-2 ${error ? 'bg-red-500/10 border-red-500 text-red-200' : 'bg-blue-500/10 border-blue-500 text-blue-200'}`}>
                                     {mintMessage || error}
                                     {txHash && (
-                                        <a href={`https://sepolia.arbiscan.io/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="block mt-1 underline decoration-dotted hover:text-white">
-                                            View TX Hash
+                                        <a href={`https://sepolia.arbiscan.io/address/${txHash}`} target="_blank" rel="noopener noreferrer" className="block mt-1 underline decoration-dotted hover:text-white">
+                                            View Your Transaction &rarr;
                                         </a>
                                     )}
                                 </div>

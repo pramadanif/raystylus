@@ -3,22 +3,29 @@
 import { ReactNode } from 'react';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { arbitrumSepolia } from 'wagmi/chains';
-import { metaMask, walletConnect } from 'wagmi/connectors';
+import { metaMask } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const rpcUrl = process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC || 'https://arbitrum-sepolia-rpc.publicnode.com';
+// Disable MetaMaskSDK initialization
+if (typeof window !== 'undefined') {
+    (window as any).MetaMaskSDK = { initialized: true };
+}
+
+const rpcUrl = process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC || 'https://sepolia-rollup.arbitrum.io/rpc';
 
 const config = createConfig({
     chains: [arbitrumSepolia],
     connectors: [
-        metaMask(),
-        walletConnect({
-            projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '1234567890abcdef',
+        metaMask({
+            dappMetadata: {
+                name: 'RayStylus',
+            },
         }),
     ],
     transports: {
         [arbitrumSepolia.id]: http(rpcUrl),
     },
+    ssr: true,
 });
 
 const queryClient = new QueryClient();

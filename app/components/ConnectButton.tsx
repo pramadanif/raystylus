@@ -1,109 +1,104 @@
 'use client';
 
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useChainId } from 'wagmi';
 import { Loader2, Wallet, AlertCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-const ARBITRUM_SEPOLIA = {
-    id: 421614,
-    name: 'Arbitrum Sepolia',
-    network: 'arbitrum-sepolia',
-    nativeCurrency: {
-        name: 'Ether',
-        symbol: 'ETH',
-        decimals: 18,
-    },
-    rpcUrls: {
-        default: {
-            http: ['https://sepolia-rollup.arbitrum.io/rpc'],
-        },
-    },
-    blockExplorers: {
-        default: {
-            name: 'Arbiscan',
-            url: 'https://sepolia.arbiscan.io',
-        },
-    },
-    testnet: true,
-};
+const ARBITRUM_SEPOLIA_ID = 421614;
+const ARBITRUM_SEPOLIA_HEX = '0x66eee';
 
 export const ConnectButton = () => {
     const { address, isConnected } = useAccount();
     const { connectors, connect, isPending } = useConnect();
     const { disconnect } = useDisconnect();
     const chainId = useChainId();
-    const { switchChain } = useSwitchChain();
+    
     const [mounted, setMounted] = useState(false);
     const [showChainWarning, setShowChainWarning] = useState(false);
+    const [isSwitching, setIsSwitching] = useState(false);
+    const [currentChain, setCurrentChain] = useState<number | null>(null);
 
     useEffect(() => {
         setMounted(true);
+        
+        // Listen to chain changes
+        const handleChainChanged = (chainIdHex: string) => {
+            const newChainId = parseInt(chainIdHex, 16);
+            setCurrentChain(newChainId);
+        };
+
+        if (window.ethereum) {
+            window.ethereum.on('chainChanged', handleChainChanged);
+            
+            // Get initial chain
+            window.ethereum.request({ method: 'eth_chainId' }).then((chainIdHex: string) => {
+                const newChainId = parseInt(chainIdHex, 16);
+                setCurrentChain(newChainId);
+            });
+
+            return () => {
+                window.ethereum?.removeListener('chainChanged', handleChainChanged);
+            };
+        }
     }, []);
 
-    // Auto-prompt to switch chain when connected to wrong network
+    // Cek network
     useEffect(() => {
-        if (isConnected && chainId !== ARBITRUM_SEPOLIA.id) {
+        const effectiveChainId = currentChain ?? chainId;
+        
+        if (isConnected && effectiveChainId && effectiveChainId !== ARBITRUM_SEPOLIA_ID) {
             setShowChainWarning(true);
         } else {
             setShowChainWarning(false);
         }
-    }, [isConnected, chainId]);
+    }, [isConnected, currentChain, chainId]);
 
-    const handleSwitchChain = async () => {
-        try {
-            // First try to switch using wagmi
-            if (switchChain) {
-                await switchChain({ chainId: ARBITRUM_SEPOLIA.id });
-                return;
-            }
-        } catch (error: any) {
-            console.log('Switch chain via wagmi failed, trying ethereum provider...', error);
+    const handleSwitchChain = useCallback(async () => {
+        const ethereum = (window as any).ethereum;
+        if (!ethereum) {
+            alert('MetaMask not found');
+            return;
         }
 
-        // Fallback: use ethereum provider directly
+        setIsSwitching(true);
         try {
-            const provider = (window as any).ethereum;
-            if (!provider) {
-                alert('MetaMask not found. Please install MetaMask.');
-                return;
-            }
-
-            // Try to switch to the chain
-            await provider.request({
+            console.log('Attempting to switch to chain:', ARBITRUM_SEPOLIA_HEX);
+            await ethereum.request({
                 method: 'wallet_switchEthereumChain',
-                params: [{ chainId: `0x${ARBITRUM_SEPOLIA.id.toString(16)}` }],
+                params: [{ chainId: ARBITRUM_SEPOLIA_HEX }],
             });
-        } catch (switchError: any) {
-            // Chain doesn't exist, add it
-            if (switchError?.code === 4902) {
+            console.log('Successfully switched chain');
+        } catch (error: any) {
+            console.log('Switch error code:', error.code, 'Message:', error.message);
+            
+            if (error.code === 4902) {
                 try {
-                    const provider = (window as any).ethereum;
-                    await provider.request({
+                    console.log('Chain not found, attempting to add...');
+                    await ethereum.request({
                         method: 'wallet_addEthereumChain',
-                        params: [
-                            {
-                                chainId: `0x${ARBITRUM_SEPOLIA.id.toString(16)}`,
-                                chainName: ARBITRUM_SEPOLIA.name,
-                                nativeCurrency: ARBITRUM_SEPOLIA.nativeCurrency,
-                                rpcUrls: ARBITRUM_SEPOLIA.rpcUrls.default.http,
-                                blockExplorerUrls: [ARBITRUM_SEPOLIA.blockExplorers.default.url],
-                            },
-                        ],
+                        params: [{
+                            chainId: ARBITRUM_SEPOLIA_HEX,
+                            chainName: 'Arbitrum Sepolia',
+                            rpcUrls: ['https://sepolia-rollup.arbitrum.io/rpc'],
+                            blockExplorerUrls: ['https://sepolia.arbiscan.io'],
+                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                        }],
                     });
-                } catch (addError) {
-                    console.error('Error adding chain:', addError);
-                    alert('Failed to add Arbitrum Sepolia network');
+                    console.log('Chain added successfully');
+                } catch (e) {
+                    console.error('Add chain failed:', e);
                 }
-            } else {
-                console.error('Error switching chain:', switchError);
-                alert('Failed to switch network');
+            } else if (error.code === 4001) {
+                console.log('User rejected the request');
             }
+        } finally {
+            setIsSwitching(false);
         }
-    };
+    }, []);
 
     if (!mounted) {
         return (
-            <button className="px-4 py-2 bg-ray-dark border border-gray-700 rounded text-gray-500 cursor-not-allowed">
+            <button className="px-4 py-2 bg-gray-800 border border-gray-700 rounded text-gray-500 cursor-not-allowed">
                 Loading...
             </button>
         );
@@ -116,18 +111,19 @@ export const ConnectButton = () => {
                     <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg animate-pulse">
                         <AlertCircle size={14} className="text-red-400 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-red-300 font-medium">Wrong network</p>
+                            <p className="text-xs text-red-300 font-medium">Wrong network - Switching...</p>
                             <button
                                 onClick={handleSwitchChain}
-                                className="text-xs text-red-400 hover:text-red-300 underline font-semibold mt-1 block"
+                                disabled={isSwitching}
+                                className="text-xs text-red-400 hover:text-red-300 underline font-semibold mt-1 block disabled:opacity-50"
                             >
-                                Switch to Arbitrum Sepolia
+                                {isSwitching ? 'Switching...' : 'Click to switch manually'}
                             </button>
                         </div>
                     </div>
                 )}
                 <div className="flex items-center space-x-2">
-                    <div className="px-4 py-2 bg-ray-mid/20 border border-ray-mid text-ray-light rounded font-mono text-sm">
+                    <div className="px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded font-mono text-sm">
                         {address.slice(0, 6)}...{address.slice(-4)}
                     </div>
                     <button
@@ -149,7 +145,7 @@ export const ConnectButton = () => {
                     key={connector.uid}
                     onClick={() => connect({ connector })}
                     disabled={isPending}
-                    className="flex items-center px-4 py-2 bg-ray-mid hover:bg-ray-light text-white rounded font-medium transition-all shadow-[0_0_10px_rgba(98,129,65,0.3)] hover:shadow-[0_0_15px_rgba(98,129,65,0.6)]"
+                    className="flex items-center px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded font-medium transition-all"
                 >
                     {isPending ? (
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -162,3 +158,14 @@ export const ConnectButton = () => {
         </div>
     );
 };
+
+// Add a type declaration for the 'ethereum' property on the Window object
+declare global {
+    interface Window {
+        ethereum?: {
+            on: (event: string, callback: (...args: any[]) => void) => void;
+            request: (args: { method: string; params?: any[] }) => Promise<any>;
+            removeListener: (event: string, callback: (...args: any[]) => void) => void;
+        };
+    }
+}
