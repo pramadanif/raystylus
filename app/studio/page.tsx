@@ -338,7 +338,7 @@ export default function StudioPage() {
                             className={`w-full py-3.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 shadow-lg ${
                                 isMinting || !data || !isConnected
                                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:brightness-110 shadow-purple-500/20'
+                                    : 'bg-gradient-to-r from-[#628141] to-[#3d4a24] text-white hover:brightness-110 shadow-[#628141]/20'
                             }`}
                         >
                             {isMinting ? 'Signing...' : !isConnected ? 'Connect Wallet' : <><Gift size={14} /> Mint NFT</>}
