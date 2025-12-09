@@ -206,7 +206,7 @@ export default function StudioPage() {
     // --- End Logic ---
 
     return (
-        <div className="min-h-screen bg-[#050605] text-gray-200 flex flex-col font-sans selection:bg-ray-mid selection:text-black">
+        <div className="h-screen bg-[#050605] text-gray-200 flex flex-col font-sans selection:bg-ray-mid selection:text-black overflow-hidden">
             {/* Background Texture (Grid) */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.03]" 
                  style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
@@ -236,8 +236,8 @@ export default function StudioPage() {
 
             <main className="flex-1 flex overflow-hidden relative z-10 gap-4 p-4">
                 {/* Left Sidebar Controls */}
-                <aside className="w-80 bg-[#0a0c0a]/95 border-l border-white/5 flex flex-col overflow-y-auto backdrop-blur-sm custom-scrollbar">
-                    <div className="p-6 space-y-8">
+                <aside className="w-80 bg-[#0a0c0a]/95 border-l border-white/5 flex flex-col overflow-hidden backdrop-blur-sm">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                         
                         {/* Section: Settings */}
                         <div>
@@ -302,7 +302,7 @@ export default function StudioPage() {
                     </div>
 
                     {/* Action Area */}
-                    <div className="mt-auto p-6 bg-gradient-to-t from-black to-transparent space-y-3 border-t border-white/5">
+                    <div className="p-6 bg-gradient-to-t from-black to-transparent space-y-3 border-t border-white/5 flex-shrink-0">
                         
                         {/* Terminal / Status Box */}
                         <div className="bg-black/80 rounded-lg border border-white/10 p-3 font-mono text-[10px] leading-relaxed mb-4 shadow-inner">
@@ -442,7 +442,7 @@ export default function StudioPage() {
                 </div>
 
                 {/* Right Sidebar - AI Chat Panel */}
-                <div className="w-72 flex-shrink-0">
+                <div className="w-72 flex-shrink-0 h-full flex flex-col">
                     <AIChat onConfigReceived={handleConfigFromAI} />
                 </div>
             </main>

@@ -147,7 +147,7 @@ export const AIChat = ({
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0c0a]/95 border border-white/5 rounded-lg overflow-hidden font-sans">
+        <div className="flex flex-col h-full bg-[#0a0c0a]/95 border border-white/5 rounded-lg overflow-hidden font-sans flex-1">
             {/* Header */}
             <div className="p-4 border-b border-white/5 bg-black/40 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export const AIChat = ({
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 space-y-4">
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
                         <Bot size={32} className="mx-auto text-zinc-600 mb-3" />
