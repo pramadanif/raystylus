@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai'; // Import library OpenAI
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_URL = 'https://openrouter.io/api/v1/chat/completions';
+// Gunakan URL yang sama dengan project SourceNet Anda
+const BASE_URL = 'https://openrouter.ai/api/v1'; 
 
 const SYSTEM_PROMPT = `You are the RayStylus AI Assistant. Your task has two strict operating modes:
 
@@ -22,126 +24,79 @@ MAIN RULES:
 2. Provide answers in English.
 3. About RayStylus questions, answer as follows: "RayStylus is the world's first 3D render studio running entirely On-Chain, powered by Arbitrum Stylus (Rust). It proves that heavy computation (Ray Tracing) can be executed in real-time with zero-lag, opening the door for future Games and Art."
 4. Use Markdown, emojis, and bold formatting for best presentation.
-EXAMPLE OUTPUT: [CHAT] RayStylus is the world's first On-Chain 3D render studio... [Continue with your interactive answer]`;
+EXAMPLE OUTPUT: [CHAT] RayStylus is the world's first On-Chain 3D render studio...`;
 
-// Mock responses for testing without valid API key
+// Mock responses tetap dipertahankan sebagai fallback
 const getMockResponse = (userMessage: string): string => {
     const msg = userMessage.toLowerCase();
+    if (msg.includes('red') || msg.includes('sphere')) return '[CONFIG] {"sphereColor": "#FF0000"}';
+    if (msg.includes('blue')) return '[CONFIG] {"sphereColor": "#0000FF"}';
+    if (msg.includes('green')) return '[CONFIG] {"sphereColor": "#00FF00"}';
+    if (msg.includes('forward') || msg.includes('closer')) return '[CONFIG] {"cameraZ": -20}';
+    if (msg.includes('back') || msg.includes('further')) return '[CONFIG] {"cameraZ": 20}';
     
-    // Configuration requests
-    if (msg.includes('red') || msg.includes('sphere')) {
-        return '[CONFIG] {"sphereColor": "#FF0000"}';
-    }
-    if (msg.includes('blue')) {
-        return '[CONFIG] {"sphereColor": "#0000FF"}';
-    }
-    if (msg.includes('green')) {
-        return '[CONFIG] {"sphereColor": "#00FF00"}';
-    }
-    if (msg.includes('purple')) {
-        return '[CONFIG] {"sphereColor": "#9370DB"}';
-    }
-    if (msg.includes('yellow')) {
-        return '[CONFIG] {"sphereColor": "#FFFF00"}';
-    }
-    if (msg.includes('camera') && msg.includes('z')) {
-        const match = userMessage.match(/-?\d+/);
-        if (match) {
-            return `[CONFIG] {"cameraZ": ${match[0]}}`;
-        }
-    }
-    if (msg.includes('forward') || msg.includes('closer')) {
-        return '[CONFIG] {"cameraZ": -20}';
-    }
-    if (msg.includes('back') || msg.includes('further')) {
-        return '[CONFIG] {"cameraZ": 20}';
-    }
-    
-    // Chat responses
-    if (msg.includes('what') || msg.includes('tell') || msg.includes('explain')) {
-        return '[CHAT] **RayStylus** is the world\'s first 3D render studio running entirely On-Chain, powered by **Arbitrum Stylus (Rust)**. It proves that heavy computation (Ray Tracing) can be executed in real-time with zero-lag, opening the door for future Games and Art. 🚀';
-    }
-    if (msg.includes('how') || msg.includes('work')) {
-        return '[CHAT] RayStylus leverages **Arbitrum Stylus** to execute complex ray tracing calculations directly on the blockchain. Each render is a transaction, making your 3D creations truly decentralized! ✨';
-    }
-    
-    // Default response
     return '[CHAT] I\'m RayStylus AI! You can ask me to configure the scene (e.g., "make the sphere red") or ask questions about RayStylus. 🎨';
 };
 
 export async function POST(request: NextRequest) {
     try {
-        let body;
-        try {
-            body = await request.json();
-        } catch (e) {
-            console.error('Failed to parse request body:', e);
-            return NextResponse.json(
-                { error: 'Invalid JSON in request body' },
-                { status: 400 }
-            );
+        const body = await request.json();
+        const { messages } = body;
+
+        // Validasi input
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return NextResponse.json({ error: 'messages array is required' }, { status: 400 });
         }
 
-        const { userMessage } = body;
+        const lastUserMessage = messages[messages.length - 1].content || '';
 
-        if (!userMessage) {
-            return NextResponse.json(
-                { error: 'userMessage is required' },
-                { status: 400 }
-            );
-        }
-
-        // If API key is available, try to use OpenRouter
+        // 1. Coba Panggil OpenRouter pakai Library OpenAI
         if (OPENROUTER_API_KEY) {
             try {
-                const response = await fetch(OPENROUTER_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                        'HTTP-Referer': 'http://localhost:3000',
+                // Inisialisasi client OpenAI (Persis seperti SourceNet)
+                const openai = new OpenAI({
+                    apiKey: OPENROUTER_API_KEY,
+                    baseURL: BASE_URL,
+                    defaultHeaders: {
+                        'HTTP-Referer': 'http://localhost:3000', // Ganti dengan domain production nanti
                         'X-Title': 'RayStylus',
-                    },
-                    body: JSON.stringify({
-                        model: 'openai/gpt-oss-120b:free',
-                        messages: [
-                            {
-                                role: 'system',
-                                content: SYSTEM_PROMPT,
-                            },
-                            {
-                                role: 'user',
-                                content: userMessage,
-                            },
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 500,
-                    }),
+                    }
                 });
 
-                const responseText = await response.text();
+                // Format messages (role 'ai' -> 'assistant')
+                const apiMessages = messages.map((msg: any) => ({
+                    role: msg.role === 'ai' ? 'assistant' : msg.role, 
+                    content: msg.content
+                }));
+
+                const completion = await openai.chat.completions.create({
+                    model: 'openai/gpt-oss-20b:free', // Model gratis yang cepat & bagus
+                    messages: [
+                        { role: 'system', content: SYSTEM_PROMPT },
+                        ...apiMessages
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 500,
+                });
+
+                const aiResponse = completion.choices[0]?.message?.content;
                 
-                if (response.ok && responseText) {
-                    const data = JSON.parse(responseText);
-                    const aiResponse = data.choices?.[0]?.message?.content || '';
-                    if (aiResponse) {
-                        console.log('Using OpenRouter API response');
-                        return NextResponse.json({ response: aiResponse });
-                    }
-                } else {
-                    console.warn('OpenRouter API unavailable, falling back to mock responses');
-                    console.warn('Status:', response.status, 'Response:', responseText.substring(0, 100));
+                if (aiResponse) {
+                    return NextResponse.json({ response: aiResponse });
                 }
+
             } catch (error) {
-                console.warn('OpenRouter API error, falling back to mock responses:', error);
+                console.warn('OpenRouter API Error:', error);
+                // Jangan return error, lanjut ke Mock sebagai fallback
             }
         } else {
-            console.log('No API key configured, using mock responses');
+            console.log('No API Key, using mock.');
         }
 
-        // Fallback to mock response
-        const mockResponse = getMockResponse(userMessage);
+        // 2. Fallback ke Mock jika API gagal/tidak ada key
+        const mockResponse = getMockResponse(lastUserMessage);
         return NextResponse.json({ response: mockResponse });
+
     } catch (error) {
         console.error('API route error:', error);
         return NextResponse.json(
