@@ -34,51 +34,6 @@ const RangeSlider = ({ label, value, min, max, onChange }: any) => (
     </div>
 );
 
-// Smooth Marquee Component
-const Marquee = ({ children }: { children: React.ReactNode }) => {
-    const [contentWidth, setContentWidth] = useState(0);
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (contentRef.current) {
-            setContentWidth(contentRef.current.offsetWidth);
-        }
-    }, []);
-
-    const duration = contentWidth > 0 ? contentWidth / 50 : 30;
-
-    return (
-        <div className="w-full overflow-hidden bg-white/[0.02] border border-white/5 rounded-lg">
-            <style>{`
-                @keyframes smoothMarquee {
-                    0% {
-                        transform: translateX(100%);
-                    }
-                    100% {
-                        transform: translateX(-100%);
-                    }
-                }
-                .marquee-content {
-                    animation: smoothMarquee ${duration}s linear infinite;
-                    display: inline-block;
-                    white-space: nowrap;
-                }
-                .marquee-container:hover .marquee-content {
-                    animation-play-state: paused;
-                }
-            `}</style>
-            <div className="marquee-container py-3">
-                <div 
-                    ref={contentRef}
-                    className="marquee-content text-xs text-gray-300 px-6"
-                >
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-};
-
 export default function StudioPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const chainId = useChainId();
@@ -89,7 +44,7 @@ export default function StudioPage() {
     const [config, setConfig] = useState({
         resolution: '32x32',
         sphereColor: '#EBD5AB',
-        bgColor1: '#0F120E',
+        bgColor1: '#0F120E', // Sedikit diubah defaultnya agar match tema dark
         bgColor2: '#5B7FD5',
         cameraX: 0,
         cameraY: 0,
@@ -192,7 +147,7 @@ export default function StudioPage() {
 
             {/* Header */}
             <header className="h-16 border-b border-white/5 bg-[#0f120e]/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-50">
-                <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-3">
                     <div className="text-ray-light p-1.5 bg-ray-light/10 rounded-lg">
                         <RaccoonLogo size="sm" />
                     </div>
@@ -200,7 +155,7 @@ export default function StudioPage() {
                         <h1 className="font-bold text-lg text-white tracking-tight leading-tight">RayStylus Studio</h1>
                         <p className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">On-Chain Renderer</p>
                     </div>
-                </a>
+                </div>
                 <div className="flex items-center gap-4">
                     <div className="px-3 py-1.5 rounded-full bg-black/40 border border-white/5 flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${chainId === 421614 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`}></div>
@@ -318,7 +273,7 @@ export default function StudioPage() {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                             <button
                                 onClick={handleRender}
                                 disabled={isLoading}
@@ -329,6 +284,13 @@ export default function StudioPage() {
                             >
                                 {isLoading ? <div className="w-3 h-3 border-2 border-t-transparent border-current rounded-full animate-spin"/> : <Zap size={14} />}
                                 Render
+                            </button>
+                            
+                            <button
+                                onClick={clearRender}
+                                className="col-span-1 py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wide transition-all bg-red-500/5 text-red-400 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/50"
+                            >
+                                Wipe
                             </button>
                         </div>
 
@@ -396,24 +358,12 @@ export default function StudioPage() {
                         </div>
                     </div>
 
-                    {/* Marquee Section */}
-                    <div className="mt-8 w-full max-w-4xl">
-                        <Marquee>
-                            The 3D graphics you create are rendered on the blockchain, not on your PC. 
-                            It executes thousands of complex vector mathematical operations 
-                            <span className="text-ray-light font-semibold"> (Dot Product</span>, 
-                            <span className="text-ray-light font-semibold"> Normalization</span>, 
-                            <span className="text-ray-light font-semibold"> Quadratic Formula)</span> 
-                            for every pixel in a single transaction. •
-                        </Marquee>
-                    </div>
-
                     {/* Footer Info */}
-                    <div className="mt-8 max-w-2xl text-center">
+                    <div className="mt-12 max-w-2xl text-center">
                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
                             <Activity size={14} className="text-ray-mid" />
                             <p className="text-xs text-gray-400">
-                                Powered by <span className="text-gray-200 font-semibold">Rust</span> & <span className="text-gray-200 font-semibold">WebAssembly</span> on Arbitrum Stylus Contract
+                                Powered by <span className="text-gray-200 font-semibold">Rust</span> & <span className="text-gray-200 font-semibold">WebAssembly</span> on Arbitrum
                             </p>
                          </div>
                     </div>

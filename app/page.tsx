@@ -21,13 +21,13 @@ export default function Home() {
           <ProblemSolution />
         </ScrollAnimation>
         <ScrollAnimation>
-          <DemoSection />
+          <Benchmark />
         </ScrollAnimation>
         <ScrollAnimation>
           <SystemArchitecture />
         </ScrollAnimation>
         <ScrollAnimation>
-          <Benchmark />
+          <DemoSection />
         </ScrollAnimation>
       </main>
       <ScrollAnimation>

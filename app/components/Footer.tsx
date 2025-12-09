@@ -14,17 +14,8 @@ export const Footer: React.FC = () => {
                         </div>
                         <span className="text-lg font-bold text-ray-cream">RAYSTYLUS</span>
                     </div>
-
-                    <div className="flex justify-center md:justify-end space-x-6">
-                        <a href="#" className="text-gray-400 hover:text-ray-light transition-colors">
-                            <Github />
-                        </a>
-                        <a href="#" className="text-gray-400 hover:text-ray-light transition-colors">
-                            Documentation
-                        </a>
-                    </div>
                 </div>
-
+            
                 <div className="mt-8 text-center text-xs text-gray-600">
                     &copy; 2025 RayStylus Project. Built with Rust &amp; React.
                 </div>
