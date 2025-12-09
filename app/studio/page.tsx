@@ -34,6 +34,15 @@ export default function StudioPage() {
         }
     }, [data]);
 
+    // Auto-render when config changes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            render(config);
+        }, 300); // Debounce untuk mencegah multiple renders
+        
+        return () => clearTimeout(timer);
+    }, [config, render]);
+
     const drawPixels = (hexString: string) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -237,18 +246,45 @@ export default function StudioPage() {
                             <label className="text-sm font-medium text-gray-300 block flex items-center">
                                 <Camera size={14} className="mr-2" /> Camera Offset
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-4">
                                 <div>
-                                    <span className="text-xs text-gray-500 mb-1 block">X</span>
-                                    <input type="number" value={config.cameraX} onChange={(e) => setConfig({ ...config, cameraX: Number(e.target.value) })} className="w-full bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs" />
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs text-gray-500">X: {config.cameraX}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="-50" 
+                                        max="50" 
+                                        value={config.cameraX} 
+                                        onChange={(e) => setConfig({ ...config, cameraX: Number(e.target.value) })} 
+                                        className="w-full h-2 bg-[#1b211a] border border-gray-700 rounded appearance-none cursor-pointer accent-ray-mid"
+                                    />
                                 </div>
                                 <div>
-                                    <span className="text-xs text-gray-500 mb-1 block">Y</span>
-                                    <input type="number" value={config.cameraY} onChange={(e) => setConfig({ ...config, cameraY: Number(e.target.value) })} className="w-full bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs" />
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs text-gray-500">Y: {config.cameraY}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="-50" 
+                                        max="50" 
+                                        value={config.cameraY} 
+                                        onChange={(e) => setConfig({ ...config, cameraY: Number(e.target.value) })} 
+                                        className="w-full h-2 bg-[#1b211a] border border-gray-700 rounded appearance-none cursor-pointer accent-ray-mid"
+                                    />
                                 </div>
                                 <div>
-                                    <span className="text-xs text-gray-500 mb-1 block">Z</span>
-                                    <input type="number" value={config.cameraZ} onChange={(e) => setConfig({ ...config, cameraZ: Number(e.target.value) })} className="w-full bg-[#1b211a] border border-gray-700 rounded px-2 py-1 text-xs" />
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs text-gray-500">Z: {config.cameraZ}</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="-50" 
+                                        max="50" 
+                                        value={config.cameraZ} 
+                                        onChange={(e) => setConfig({ ...config, cameraZ: Number(e.target.value) })} 
+                                        className="w-full h-2 bg-[#1b211a] border border-gray-700 rounded appearance-none cursor-pointer accent-ray-mid"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -345,7 +381,7 @@ export default function StudioPage() {
                 </aside>
 
                 {/* Mian Canvas View */}
-                <div className="flex-1 bg-[#0a0c0a] flex items-center justify-center relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#1B211A]/30 to-transparent p-10">
+                <div className="flex-1 bg-[#0a0c0a] flex flex-col items-center justify-center relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#1B211A]/30 to-transparent p-10 space-y-6">
                     <div className="relative group">
                         {/* Border effect */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-ray-mid to-ray-light rounded opacity-20 group-hover:opacity-40 transition blur"></div>
@@ -367,6 +403,18 @@ export default function StudioPage() {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    {/* Blockchain Information */}
+                    <div className="max-w-2xl text-center bg-[#151a14]/80 border border-ray-mid/30 rounded-lg p-6 backdrop-blur-sm">
+                        <p className="text-sm text-gray-300 leading-relaxed">
+                            The 3D graphics you create are rendered on the blockchain, not on your PC. 
+                            It executes thousands of complex vector mathematical operations 
+                            (<span className="text-ray-light font-semibold">Dot Product</span>, 
+                            <span className="text-ray-light font-semibold"> Normalization</span>, 
+                            <span className="text-ray-light font-semibold"> Quadratic Formula</span>) 
+                            for every pixel in a single transaction.
+                        </p>
                     </div>
                 </div>
             </main>

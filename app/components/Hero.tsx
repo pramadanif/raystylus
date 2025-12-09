@@ -194,6 +194,23 @@ export const Hero = () => {
               High-performance graphics computation directly on the Arbitrum blockchain.
             </motion.p>
 
+            {/* Blockchain Info */}
+            <motion.div
+              className="mb-8 p-4 bg-[#0F1410]/60 border border-[#8BAE66]/30 rounded-lg max-w-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
+            >
+              <p className="text-sm text-gray-300 leading-relaxed">
+                The 3D graphics you create are rendered on the blockchain, not on your PC. 
+                It executes thousands of complex vector mathematical operations 
+                (<span className="text-[#8BAE66] font-semibold">Dot Product</span>, 
+                <span className="text-[#8BAE66] font-semibold"> Normalization</span>, 
+                <span className="text-[#8BAE66] font-semibold"> Quadratic Formula</span>) 
+                for every pixel in a single transaction.
+              </p>
+            </motion.div>
+
             {/* CTA Buttons */}
             <motion.div 
               className="flex flex-col sm:flex-row gap-4"
