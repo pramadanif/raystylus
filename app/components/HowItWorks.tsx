@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Cpu, Zap, Layers, Box, Globe } from 'lucide-react'; // Added Globe icon
+import { Cpu, Zap, Layers, Globe } from 'lucide-react'; // Added Globe icon
+import { RustLogo,ArbitrumLogo } from './Logo';
 
 export const HowItWorks: React.FC = () => {
     const sectionRef = useRef<HTMLDivElement>(null);
@@ -71,7 +72,7 @@ export const HowItWorks: React.FC = () => {
                                 }}
                             >
                                 <div className="p-3 bg-orange-900/30 text-orange-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
-                                    <Box size={24} />
+                                    <RustLogo size="sm" />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-200">Rust Logic</h4>
@@ -97,7 +98,7 @@ export const HowItWorks: React.FC = () => {
                                 }}
                             >
                                 <div className="p-3 bg-blue-900/30 text-blue-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
-                                    <Cpu size={24} />
+                                    <Cpu size={32} />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-200">WASM Compilation</h4>
@@ -123,7 +124,7 @@ export const HowItWorks: React.FC = () => {
                                 }}
                             >
                                 <div className="p-3 bg-ray-mid/20 text-ray-light rounded-lg mr-4 group-hover:scale-110 transition-transform">
-                                    <Zap size={24} />
+                                    < ArbitrumLogo size="sm" />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-ray-cream">Arbitrum Stylus</h4>
