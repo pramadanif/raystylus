@@ -51,32 +51,52 @@ export const ConnectButton = () => {
 
     const handleSwitchChain = async () => {
         try {
-            // Try to switch to Arbitrum Sepolia
-            await switchChain({ chainId: ARBITRUM_SEPOLIA.id });
+            // First try to switch using wagmi
+            if (switchChain) {
+                await switchChain({ chainId: ARBITRUM_SEPOLIA.id });
+                return;
+            }
         } catch (error: any) {
-            // If chain doesn't exist, try to add it
-            if (error?.code === 4902 || error?.message?.includes('Unrecognized chain ID')) {
+            console.log('Switch chain via wagmi failed, trying ethereum provider...', error);
+        }
+
+        // Fallback: use ethereum provider directly
+        try {
+            const provider = (window as any).ethereum;
+            if (!provider) {
+                alert('MetaMask not found. Please install MetaMask.');
+                return;
+            }
+
+            // Try to switch to the chain
+            await provider.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: `0x${ARBITRUM_SEPOLIA.id.toString(16)}` }],
+            });
+        } catch (switchError: any) {
+            // Chain doesn't exist, add it
+            if (switchError?.code === 4902) {
                 try {
                     const provider = (window as any).ethereum;
-                    if (provider) {
-                        await provider.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [
-                                {
-                                    chainId: `0x${ARBITRUM_SEPOLIA.id.toString(16)}`,
-                                    chainName: ARBITRUM_SEPOLIA.name,
-                                    nativeCurrency: ARBITRUM_SEPOLIA.nativeCurrency,
-                                    rpcUrls: ARBITRUM_SEPOLIA.rpcUrls.default.http,
-                                    blockExplorerUrls: [ARBITRUM_SEPOLIA.blockExplorers.default.url],
-                                },
-                            ],
-                        });
-                    }
+                    await provider.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [
+                            {
+                                chainId: `0x${ARBITRUM_SEPOLIA.id.toString(16)}`,
+                                chainName: ARBITRUM_SEPOLIA.name,
+                                nativeCurrency: ARBITRUM_SEPOLIA.nativeCurrency,
+                                rpcUrls: ARBITRUM_SEPOLIA.rpcUrls.default.http,
+                                blockExplorerUrls: [ARBITRUM_SEPOLIA.blockExplorers.default.url],
+                            },
+                        ],
+                    });
                 } catch (addError) {
                     console.error('Error adding chain:', addError);
+                    alert('Failed to add Arbitrum Sepolia network');
                 }
             } else {
-                console.error('Error switching chain:', error);
+                console.error('Error switching chain:', switchError);
+                alert('Failed to switch network');
             }
         }
     };
