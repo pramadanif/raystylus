@@ -29,7 +29,8 @@ export const SystemArchitecture: React.FC = () => {
             items: [
                 { title: 'Configuration UI', description: 'Resolution, Camera Offset, Colors' },
                 { title: 'Wagmi + Viem', description: 'Web3 Contract Interaction' },
-                { title: 'Canvas Engine', description: 'Hex Decoding & Rendering' }
+                { title: 'Canvas Engine', description: 'Hex Decoding & Rendering' },
+                { title: 'AI Integration', description: 'Natural language to config, powered by OpenRouter' }
             ],
             delay: 0.1
         }
@@ -197,7 +198,8 @@ export const SystemArchitecture: React.FC = () => {
                             {[
                                 { title: 'Configuration UI', desc: 'Resolution, Camera Offset, Colors' },
                                 { title: 'Wagmi + Viem', desc: 'Web3 Contract Interaction' },
-                                { title: 'Canvas Engine', desc: 'Hex Decoding & Rendering' }
+                                { title: 'Canvas Engine', desc: 'Hex Decoding & Rendering' },
+                                { title: 'AI Integration', desc: 'AI-powered config & chat' }
                             ].map((item, idx) => (
                                 <div 
                                     key={idx}

@@ -20,7 +20,7 @@ pub struct Contract {
 
 #[public]
 impl Contract {
-    /// MINT: Simpan data token tanpa render (gas efisien)
+    /// MINT: Save token data with safe arithmetic
     pub fn mint(
         &mut self,
         sphere_r: u8,
@@ -75,12 +75,12 @@ impl Contract {
         token_id
     }
 
-    /// GET OWNER: Cek siapa pemilik token
+    /// GET OWNER: Check who owns the token
     pub fn owner_of(&self, token_id: U256) -> Address {
         self.owners.get(token_id)
     }
 
-    /// RENDER TOKEN: Ambil data & render scene + BMP header (100% sama dengan code 2)
+    /// RENDER TOKEN: Retrieve data & render scene + BMP header 
     pub fn render_token(&self, token_id: U256) -> Bytes {
         let data = self.token_data.get(token_id).get_bytes();
 
@@ -102,7 +102,7 @@ impl Contract {
         let cy = i32::from_le_bytes([data[13], data[14], data[15], data[16]]);
         let cz = i32::from_le_bytes([data[17], data[18], data[19], data[20]]);
 
-        // Render scene (PERSIS SAMA dengan code 2)
+        // Render scene
         let raw_pixels = self.renderScene(
             sphere_r, sphere_g, sphere_b,
             bg1_r, bg1_g, bg1_b,

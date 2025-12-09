@@ -15,16 +15,17 @@ export const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const titles = [
-    { title: "RAYSTYLUS:", subtitle: "ON-CHAIN GRAPHICS" },
-    { title: "RAYTRACING", subtitle: "ON BLOCKCHAIN" },
-    { title: "WEBASSEMBLY", subtitle: "MEETS RUST" },
-  ];
+    { title: "RAYSTYLUS", subtitle: "ON-CHAIN ENGINE" },
+    { title: "RAYTRACING", subtitle: "ON ARBITRUM STYLUS" },
+    { title: "INTEGRATED", subtitle: "AI & WASM" },
+];
 
-  const subtitles = [
-    "Rendering pixels via Rust Smart Contracts...",
-    "Experience on-chain ray tracing...",
-    "High-performance graphics on blockchain..."
-  ];
+const subtitles = [
+    "Executing complex ray tracing logic on-chain.",
+    "High-frequency rendering via Rust smart contracts.",
+    "The world’s first gas-optimized 3D graphics engine.",
+    "Connecting AI-level language with system-level computation."
+];
 
   useEffect(() => {
     setMounted(true);
