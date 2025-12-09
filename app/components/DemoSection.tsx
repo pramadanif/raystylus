@@ -257,6 +257,11 @@ export const DemoSection: React.FC = () => {
                                     <span className="w-2 h-2 bg-ray-light rounded-full mr-3 animate-pulse" style={{ animationDelay: '1s' }}></span>
                                     <span className="group-hover/item:text-gray-300 transition-colors">WASM Powered</span>
                                 </div>
+                                <div className="hidden md:block w-px h-4 bg-gray-700"></div>
+                                <div className="flex items-center group/item">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
+                                    <span className="group-hover/item:text-gray-300 transition-colors">AI Integrated</span>
+                                </div>
                             </div>
                         </div>
                     </div>
