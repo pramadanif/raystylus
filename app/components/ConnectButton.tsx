@@ -83,36 +83,18 @@ export const ConnectButton = () => {
         }
     }, []);
 
-    // 1. Loading State (Skeleton style)
     if (!mounted) {
         return (
             <div className="h-10 w-32 bg-zinc-800/50 animate-pulse rounded-full border border-zinc-700/50" />
         );
     }
 
-    // 2. Connected State
     if (isConnected && address) {
         return (
-            <div className="flex flex-col items-end gap-3 font-sans">
-                {/* Network Warning Notification */}
-                {showChainWarning && (
-                    <div className="flex items-center justify-between gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl w-full max-w-[300px] backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="flex items-center gap-2">
-                            <AlertCircle size={16} className="text-red-400" />
-                            <span className="text-xs font-medium text-red-200">Wrong Network</span>
-                        </div>
-                        <button
-                            onClick={handleSwitchChain}
-                            disabled={isSwitching}
-                            className="flex items-center gap-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2 py-1 rounded-md transition-colors font-medium disabled:opacity-50"
-                        >
-                            {isSwitching ? 'Switching...' : 'Switch'}
-                            {!isSwitching && <ChevronRight size={12} />}
-                        </button>
-                    </div>
-                )}
-
-                {/* Address & Disconnect Pill */}
+            // Tambahkan 'relative' di sini agar elemen absolute mengacu pada div ini
+            <div className="relative font-sans z-50">
+                
+                {/* 1. Address & Disconnect Pill */}
                 <div className="group flex items-center gap-0 bg-zinc-900 border border-zinc-800 rounded-full pl-1 pr-1 py-1 shadow-sm hover:border-zinc-700 hover:shadow-md transition-all duration-300">
                     {/* Status Dot & Address */}
                     <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800/50 rounded-full border border-zinc-700/50">
@@ -137,11 +119,38 @@ export const ConnectButton = () => {
                         <LogOut size={16} strokeWidth={2.5} />
                     </button>
                 </div>
+
+                {/* 2. Network Warning Notification (ABSOLUTE POSITION) */}
+                {/* 
+                    Perubahan Utama:
+                    - absolute: Agar melayang keluar dari flow dokumen (tidak menambah tinggi navbar).
+                    - top-full: Muncul tepat di bawah tombol.
+                    - mt-2: Memberi jarak sedikit.
+                    - right-0: Rata kanan dengan tombol (mencegah kepotong di sisi kanan layar).
+                    - w-max: Mencegah teks terpotong/wrapping jelek.
+                */}
+                {showChainWarning && (
+                    <div className="absolute top-full right-0 mt-2 z-[100]">
+                        <div className="flex items-center justify-between gap-3 px-4 py-2 bg-zinc-950/90 border border-red-500/30 rounded-xl w-max shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle size={16} className="text-red-400" />
+                                <span className="text-xs font-medium text-red-200 whitespace-nowrap">Wrong Network</span>
+                            </div>
+                            <button
+                                onClick={handleSwitchChain}
+                                disabled={isSwitching}
+                                className="flex items-center gap-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1.5 rounded-lg transition-colors font-medium disabled:opacity-50 ml-4 border border-red-500/20"
+                            >
+                                {isSwitching ? 'Switching...' : 'Switch'}
+                                {!isSwitching && <ChevronRight size={12} />}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
 
-    // 3. Not Connected State
     return (
         <div className="flex gap-2">
             {connectors.map((connector) => (
