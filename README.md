@@ -6,17 +6,17 @@
 ![RayStylus Logo](./public/raystylus-logo.png)
 
 ---
-**The Hook:**
-> "Everyone thinks Blockchain is just for Finance (DeFi). We disagree."
 
-**The Flex:**
-> "Introducing RayStylus: The first Ray Tracing Engine powered by Arbitrum Stylus."
+### The Story
 
-**The Stylus Advantage:**
-> "This is impossible on Ethereum. But thanks to Stylus & Rust, we can compute vectors & pixels on-chain."
+💬 **The Hook:** Everyone thinks blockchain is just for DeFi. *We disagree.*
 
-**The AI Magic:**
-> "And we made it accessible to everyone. No coding needed, just talk to our AI Agent."
+⚡ **The Flex:** Introducing RayStylus — the first Ray Tracing Engine powered by Arbitrum Stylus.
+
+🔬 **The Stylus Advantage:** This is impossible on Ethereum. But thanks to **Stylus & Rust**, we can compute complex vectors and render pixels on-chain.
+
+🤖 **The AI Magic:** And we made it accessible to everyone. No coding needed—just talk to our AI Agent.
+
 ---
 
 **The First Fully On-Chain Ray Tracer Built with Rust & Arbitrum Stylus**
@@ -98,31 +98,28 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 
 ```mermaid
 graph TB
+  AA[AI Chat<br/>OpenRouter] -->|Natural Language| AB[Scene Config]
   A[Frontend UI] -->|Configure| B[Scene Parameters]
+  AB -->|Update| B
   B -->|Color + Camera XYZ| C[Wagmi/Viem]
   C -->|readContract| D[RPC Endpoint]
   D -->|Call| E[Arbitrum Stylus Contract]
-    
-  subgraph AI Integration
-    AA[AI Chat (OpenRouter)] -->|Natural Language| AB[Config JSON]
-    AB -->|Update| B
-  end
-    
+  
   E -->|1. Setup Scene| F[Fixed-Point Math<br/>Scale: 1024]
   F -->|2. Generate Rays| G[32x32 Loop]
   G -->|3. Ray-Sphere<br/>Intersection| H[Quadratic Solver]
   H -->|4. Diffuse Lighting| I[Normal Calculation]
   I -->|5. RGB Encoding| J[Packed Bytes]
-    
-  J -->|1024 bytes| K[Return to Client]
+  
+  J -->|3072 bytes| K[Return to Client]
   K -->|Hex String| L[Canvas Engine]
   L -->|Draw| M[Visual Output]
-    
-  style E fill:#8BAE66,stroke:#628141,color:#fff
-  style F fill:#628141,stroke:#2A3328,color:#fff
-  style M fill:#EBD5AB,stroke:#628141,color:#000
-  style AA fill:#3b8270,stroke:#628141,color:#fff
-  style AB fill:#3b8270,stroke:#628141,color:#fff
+  
+  style E fill:#628141,stroke:#8BAE66,color:#fff
+  style F fill:#628141,stroke:#8BAE66,color:#fff
+  style M fill:#EBD5AB,stroke:#628141,color:#1B211A
+  style AA fill:#8BAE66,stroke:#628141,color:#1B211A
+  style AB fill:#8BAE66,stroke:#628141,color:#1B211A
 ```
 
 ### Contract Execution Pipeline

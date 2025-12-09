@@ -147,16 +147,16 @@ export const AIChat = ({
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0c0a]/95 border border-white/5 rounded-lg overflow-hidden font-sans flex-1">
+        <div className="flex flex-col h-full bg-[#050605]/95 border border-ray-light/10 rounded-lg overflow-hidden font-sans flex-1">
             {/* Header */}
-            <div className="p-4 border-b border-white/5 bg-black/40 flex items-center justify-between">
+            <div className="p-4 border-b border-ray-light/10 bg-black/40 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <MessageSquare size={16} className="text-emerald-500" />
-                    <h3 className="text-sm font-semibold text-gray-200">RayStylus AI</h3>
+                    <MessageSquare size={16} className="text-ray-light" />
+                    <h3 className="text-sm font-semibold text-ray-cream">RayStylus AI</h3>
                 </div>
                 <button 
                     onClick={() => setMessages([])} 
-                    className="text-[10px] text-zinc-500 hover:text-red-400 transition-colors"
+                    className="text-[10px] text-ray-light/60 hover:text-ray-cream transition-colors"
                 >
                     Clear Chat
                 </button>
@@ -166,8 +166,8 @@ export const AIChat = ({
             <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 space-y-4">
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-                        <Bot size={32} className="mx-auto text-zinc-600 mb-3" />
-                        <p className="text-xs text-zinc-500">Ask me to change colors, move camera,<br/>or explain RayStylus.</p>
+                        <Bot size={32} className="mx-auto text-ray-light/40 mb-3" />
+                        <p className="text-xs text-ray-light/50">Ask me to change colors, move camera,<br/>or explain RayStylus.</p>
                     </div>
                 ) : (
                     <>
@@ -177,17 +177,18 @@ export const AIChat = ({
                                 key={msg.id} 
                                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
-                                <div className={`
-                                    max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-sm
-                                    ${msg.role === 'user' 
-                                        ? 'bg-emerald-600 text-white rounded-tr-none' // Style User
-                                        : msg.type === 'error'
-                                            ? 'bg-red-500/10 border border-red-500/20 text-red-200 rounded-tl-none'
-                                            : msg.type === 'config'
-                                                ? 'bg-zinc-800 border border-emerald-500/30 text-emerald-300 font-mono rounded-tl-none'
-                                                : 'bg-zinc-800 text-gray-200 rounded-tl-none' // Style AI
+                                <div
+                                    className={
+                                        'max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-sm ' +
+                                        (msg.role === 'user'
+                                            ? 'bg-ray-mid text-white rounded-tr-none'
+                                            : msg.type === 'error'
+                                                ? 'bg-red-500/10 border border-red-500/20 text-red-200 rounded-tl-none'
+                                                : msg.type === 'config'
+                                                    ? 'bg-black/60 border border-ray-light/30 text-ray-light font-mono rounded-tl-none'
+                                                    : 'bg-black/40 text-ray-cream border border-ray-light/10 rounded-tl-none')
                                     }
-                                `}>
+                                >
                                     {msg.type === 'chat' ? (
                                         <MarkdownRenderer content={msg.content} />
                                     ) : msg.type === 'config' ? (
@@ -208,11 +209,11 @@ export const AIChat = ({
                         {/* Loading Typing Indicator */}
                         {isLoading && (
                             <div className="flex justify-start">
-                                <div className="bg-zinc-800 rounded-2xl rounded-tl-none px-4 py-3 border border-white/5">
+                                <div className="bg-black/40 rounded-2xl rounded-tl-none px-4 py-3 border border-ray-light/10">
                                     <div className="flex gap-1">
-                                        <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                        <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                        <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce"></span>
+                                        <span className="w-1.5 h-1.5 bg-ray-light rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                        <span className="w-1.5 h-1.5 bg-ray-light rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                        <span className="w-1.5 h-1.5 bg-ray-light rounded-full animate-bounce"></span>
                                     </div>
                                 </div>
                             </div>
@@ -223,7 +224,7 @@ export const AIChat = ({
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-white/5 bg-black/20 space-y-2">
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-ray-light/10 bg-black/20 space-y-2">
                 {error && (
                     <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 p-2 rounded border border-red-500/20 animate-in fade-in slide-in-from-bottom-2">
                         <AlertCircle size={12} />
@@ -237,12 +238,12 @@ export const AIChat = ({
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Type a message..."
                         disabled={isLoading}
-                        className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-gray-200 placeholder-zinc-600 outline-none focus:border-emerald-500/40 focus:bg-zinc-900 transition-all disabled:opacity-50"
+                        className="flex-1 bg-black/40 border border-ray-light/10 rounded-xl px-4 py-2.5 text-xs text-ray-cream placeholder-ray-light/40 outline-none focus:border-ray-light/30 focus:bg-black/60 transition-all disabled:opacity-50"
                     />
                     <button
                         type="submit"
                         disabled={isLoading || !input.trim()}
-                        className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                        className="p-2.5 rounded-xl bg-ray-mid hover:bg-ray-light text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_0_15px_rgba(98,129,65,0.4)]"
                     >
                         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                     </button>
