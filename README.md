@@ -1,8 +1,23 @@
+
 # 🎨 RayStylus: On-Chain Ray Tracing Engine
 
 <div align="center">
 
 ![RayStylus Logo](./public/raystylus-logo.png)
+
+---
+**The Hook:**
+> "Everyone thinks Blockchain is just for Finance (DeFi). We disagree."
+
+**The Flex:**
+> "Introducing RayStylus: The first Ray Tracing Engine powered by Arbitrum Stylus."
+
+**The Stylus Advantage:**
+> "This is impossible on Ethereum. But thanks to Stylus & Rust, we can compute vectors & pixels on-chain."
+
+**The AI Magic:**
+> "And we made it accessible to everyone. No coding needed, just talk to our AI Agent."
+---
 
 **The First Fully On-Chain Ray Tracer Built with Rust & Arbitrum Stylus**
 
@@ -41,6 +56,7 @@ Execute ray tracing computations directly on the blockchain with 10-100x lower g
 
 RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a complete ray tracing engine in Rust. Instead of expensive off-chain computations, we render 32×32 pixel spheres with full 3D lighting directly on-chain.
 
+
 ### Key Features
 
 - ✅ **Full Ray Tracing**: Ray-sphere intersection with diffuse lighting
@@ -50,6 +66,7 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 - ✅ **Live Rendering**: Real-time pixel data to canvas
 - ✅ **Mobile Ready**: Responsive design for all devices
 - ✅ **Gradient Background**: Smooth interpolation between two colors
+- ✅ **AI Integration**: Natural language chat to control scene parameters, powered by OpenRouter and GPT-4.1. Seamlessly integrates AI and WASM raytracing on Arbitrum Stylus blockchain.
 
 ### 🌐 Deployment Details
 
@@ -76,28 +93,36 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 
 ## 🏗️ System Architecture
 
+
 ### End-to-End Data Flow
 
 ```mermaid
 graph TB
-    A[Frontend UI] -->|Configure| B[Scene Parameters]
-    B -->|Color + Camera XYZ| C[Wagmi/Viem]
-    C -->|readContract| D[RPC Endpoint]
-    D -->|Call| E[Arbitrum Stylus Contract]
+  A[Frontend UI] -->|Configure| B[Scene Parameters]
+  B -->|Color + Camera XYZ| C[Wagmi/Viem]
+  C -->|readContract| D[RPC Endpoint]
+  D -->|Call| E[Arbitrum Stylus Contract]
     
-    E -->|1. Setup Scene| F[Fixed-Point Math<br/>Scale: 1024]
-    F -->|2. Generate Rays| G[32x32 Loop]
-    G -->|3. Ray-Sphere<br/>Intersection| H[Quadratic Solver]
-    H -->|4. Diffuse Lighting| I[Normal Calculation]
-    I -->|5. RGB Encoding| J[Packed Bytes]
+  subgraph AI Integration
+    AA[AI Chat (OpenRouter)] -->|Natural Language| AB[Config JSON]
+    AB -->|Update| B
+  end
     
-    J -->|1024 bytes| K[Return to Client]
-    K -->|Hex String| L[Canvas Engine]
-    L -->|Draw| M[Visual Output]
+  E -->|1. Setup Scene| F[Fixed-Point Math<br/>Scale: 1024]
+  F -->|2. Generate Rays| G[32x32 Loop]
+  G -->|3. Ray-Sphere<br/>Intersection| H[Quadratic Solver]
+  H -->|4. Diffuse Lighting| I[Normal Calculation]
+  I -->|5. RGB Encoding| J[Packed Bytes]
     
-    style E fill:#8BAE66,stroke:#628141,color:#fff
-    style F fill:#628141,stroke:#2A3328,color:#fff
-    style M fill:#EBD5AB,stroke:#628141,color:#000
+  J -->|1024 bytes| K[Return to Client]
+  K -->|Hex String| L[Canvas Engine]
+  L -->|Draw| M[Visual Output]
+    
+  style E fill:#8BAE66,stroke:#628141,color:#fff
+  style F fill:#628141,stroke:#2A3328,color:#fff
+  style M fill:#EBD5AB,stroke:#628141,color:#000
+  style AA fill:#3b8270,stroke:#628141,color:#fff
+  style AB fill:#3b8270,stroke:#628141,color:#fff
 ```
 
 ### Contract Execution Pipeline

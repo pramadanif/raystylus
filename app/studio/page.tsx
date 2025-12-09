@@ -5,6 +5,7 @@ import { useChainId } from 'wagmi';
 import { ConnectButtonWrapper } from '../components/ConnectButtonWrapper';
 import { useRayStylus } from '../hooks/useRayStylus';
 import { useRayStylusMint } from '../hooks/useRayStylusMint';
+import { AIChat } from '../components/AIChat';
 import { RaccoonLogo } from '../components/Logo';
 import { Settings, Camera, Zap, Activity, Palette, Gift, Terminal, Cpu, Layers } from 'lucide-react';
 
@@ -181,10 +182,31 @@ export default function StudioPage() {
         setMintMessage('');
         await render(config);
     };
+
+    const handleConfigFromAI = (aiConfig: any) => {
+        // Merge AI config with existing config
+        const newConfig = { ...config };
+        
+        // Map valid keys from AI response
+        const validKeys: (keyof typeof config)[] = ['resolution', 'sphereColor', 'bgColor1', 'bgColor2', 'cameraX', 'cameraY', 'cameraZ'];
+        for (const key of validKeys) {
+            if (key in aiConfig && aiConfig[key] !== undefined) {
+                (newConfig as any)[key] = aiConfig[key];
+            }
+        }
+        
+        setConfig(newConfig);
+        setMintMessage('✨ Configuration updated from AI');
+        
+        // Auto-render after slight delay
+        setTimeout(() => {
+            render(newConfig);
+        }, 300);
+    };
     // --- End Logic ---
 
     return (
-        <div className="min-h-screen bg-[#050605] text-gray-200 flex flex-col font-sans selection:bg-ray-mid selection:text-black">
+        <div className="h-screen bg-[#050605] text-gray-200 flex flex-col font-sans selection:bg-ray-mid selection:text-black overflow-hidden">
             {/* Background Texture (Grid) */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.03]" 
                  style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
@@ -212,10 +234,10 @@ export default function StudioPage() {
                 </div>
             </header>
 
-            <main className="flex-1 flex overflow-hidden relative z-10">
-                {/* Sidebar Controls */}
-                <aside className="w-80 bg-[#0a0c0a]/95 border-r border-white/5 flex flex-col overflow-y-auto backdrop-blur-sm custom-scrollbar">
-                    <div className="p-6 space-y-8">
+            <main className="flex-1 flex overflow-hidden relative z-10 gap-4 p-4">
+                {/* Left Sidebar Controls */}
+                <aside className="w-80 bg-[#0a0c0a]/95 border-l border-white/5 flex flex-col overflow-hidden backdrop-blur-sm">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                         
                         {/* Section: Settings */}
                         <div>
@@ -280,7 +302,7 @@ export default function StudioPage() {
                     </div>
 
                     {/* Action Area */}
-                    <div className="mt-auto p-6 bg-gradient-to-t from-black to-transparent space-y-3 border-t border-white/5">
+                    <div className="p-6 bg-gradient-to-t from-black to-transparent space-y-3 border-t border-white/5 flex-shrink-0">
                         
                         {/* Terminal / Status Box */}
                         <div className="bg-black/80 rounded-lg border border-white/10 p-3 font-mono text-[10px] leading-relaxed mb-4 shadow-inner">
@@ -347,7 +369,7 @@ export default function StudioPage() {
                 </aside>
 
                 {/* Main Canvas View */}
-                <div className="flex-1 relative flex flex-col items-center justify-center p-12 overflow-hidden">
+                <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
                     {/* Ambient Glows */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ray-mid/5 rounded-full blur-[100px] pointer-events-none"></div>
                     
@@ -397,7 +419,7 @@ export default function StudioPage() {
                     </div>
 
                     {/* Marquee Section */}
-                    <div className="mt-8 w-full max-w-4xl">
+                    <div className="mt-8 w-full max-w-4xl px-4">
                         <Marquee>
                             The 3D graphics you create are rendered on the blockchain, not on your PC. 
                             It executes thousands of complex vector mathematical operations 
@@ -417,6 +439,11 @@ export default function StudioPage() {
                             </p>
                          </div>
                     </div>
+                </div>
+
+                {/* Right Sidebar - AI Chat Panel */}
+                <div className="w-72 flex-shrink-0 h-full flex flex-col">
+                    <AIChat onConfigReceived={handleConfigFromAI} />
                 </div>
             </main>
         </div>
