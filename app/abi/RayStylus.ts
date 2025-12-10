@@ -1,108 +1,281 @@
+// FILE: app/abi/RayStylus.ts
+
+/**
+ * Updated ABI for RayStylus Contract
+ * 
+ * Functions:
+ * - view_aesthetic() → VIEW (FREE!) - Get aesthetic colors
+ * - mint() → STATE (pays gas) - Create NFT with colors
+ * - render_token() → VIEW - Render NFT image
+ * - owner_of() → VIEW - Get token owner
+ * - total_supply() → VIEW - Get total minted
+ */
+
 export const RAYSTYLUS_ABI = [
+    // ============================================
+    // VIEW FUNCTION: Get aesthetic colors (FREE!)
+    // ============================================
     {
+        "name": "viewAesthetic",
+        "type": "function",
+        "stateMutability": "view",
         "inputs": [
-            { "name": "style_warmth", "type": "int64" },
-            { "name": "style_intensity", "type": "int64" },
-            { "name": "style_depth", "type": "int64" },
-            
-            { "name": "bg_color1_r", "type": "uint8" },
-            { "name": "bg_color1_g", "type": "uint8" },
-            { "name": "bg_color1_b", "type": "uint8" },
-            { "name": "bg_color2_r", "type": "uint8" },
-            { "name": "bg_color2_g", "type": "uint8" },
-            { "name": "bg_color2_b", "type": "uint8" },
-            { "name": "cam_x", "type": "int32" },
-            { "name": "cam_y", "type": "int32" },
-            { "name": "cam_z", "type": "int32" }
-        ],
-        "name": "mint_by_aesthetic",
-        "outputs": [
             {
+                "name": "style_warmth_u256",
                 "type": "uint256",
-                "name": ""
+                "internalType": "uint256"
+            },
+            {
+                "name": "style_intensity_u256",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "style_depth_u256",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "outputs": [
+            {
+                "name": "sphere_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "sphere_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "sphere_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            }
+        ]
     },
+
+    // ============================================
+    // STATE FUNCTION: Mint token with colors
+    // ============================================
     {
-        "inputs": [
-            { "name": "sphere_r", "type": "uint8" },
-            { "name": "sphere_g", "type": "uint8" },
-            { "name": "sphere_b", "type": "uint8" },
-            { "name": "bg_color1_r", "type": "uint8" },
-            { "name": "bg_color1_g", "type": "uint8" },
-            { "name": "bg_color1_b", "type": "uint8" },
-            { "name": "bg_color2_r", "type": "uint8" },
-            { "name": "bg_color2_g", "type": "uint8" },
-            { "name": "bg_color2_b", "type": "uint8" },
-            { "name": "cam_x", "type": "int32" },
-            { "name": "cam_y", "type": "int32" },
-            { "name": "cam_z", "type": "int32" }
-        ],
         "name": "mint",
-        "outputs": [
-            {
-                "type": "uint256",
-                "name": ""
-            }
-        ],
+        "type": "function",
         "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [
-            { "name": "sphere_r", "type": "uint8" },
-            { "name": "sphere_g", "type": "uint8" },
-            { "name": "sphere_b", "type": "uint8" },
-            { "name": "bg_color1_r", "type": "uint8" },
-            { "name": "bg_color1_g", "type": "uint8" },
-            { "name": "bg_color1_b", "type": "uint8" },
-            { "name": "bg_color2_r", "type": "uint8" },
-            { "name": "bg_color2_g", "type": "uint8" },
-            { "name": "bg_color2_b", "type": "uint8" },
-            { "name": "cam_x", "type": "int32" },
-            { "name": "cam_y", "type": "int32" },
-            { "name": "cam_z", "type": "int32" }
-        ],
-        "name": "renderScene",
-        "outputs": [
             {
-                "type": "bytes",
-                "name": ""
+                "name": "sphere_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "sphere_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "sphere_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color1_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color1_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color1_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color2_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color2_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color2_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "cam_x",
+                "type": "int32",
+                "internalType": "int32"
+            },
+            {
+                "name": "cam_y",
+                "type": "int32",
+                "internalType": "int32"
+            },
+            {
+                "name": "cam_z",
+                "type": "int32",
+                "internalType": "int32"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            { "name": "token_id", "type": "uint256" }
-        ],
-        "name": "render_token",
         "outputs": [
             {
-                "type": "bytes",
-                "name": ""
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ]
+    },
+
+    // ============================================
+    // VIEW FUNCTION: Render token image
+    // ============================================
+    {
+        "name": "renderToken",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "token_id",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "outputs": [
+            {
+                "name": "",
+                "type": "bytes",
+                "internalType": "bytes"
+            }
+        ]
     },
+
+    // ============================================
+    // VIEW FUNCTION: Get token owner
+    // ============================================
     {
-        "inputs": [
-            { "name": "token_id", "type": "uint256" }
-        ],
         "name": "owner_of",
-        "outputs": [
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
             {
-                "type": "address",
-                "name": ""
+                "name": "token_id",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ]
+    },
+
+    // ============================================
+    // VIEW FUNCTION: Get total supply
+    // ============================================
+    {
+        "name": "total_supply",
+        "type": "function",
         "stateMutability": "view",
-        "type": "function"
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ]
+    },
+
+    // ============================================
+    // VIEW FUNCTION: Render scene (for testing)
+    // ============================================
+    {
+        "name": "renderScene",
+        "type": "function",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "sphere_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "sphere_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "sphere_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color1_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color1_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color1_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color2_r",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color2_g",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "bg_color2_b",
+                "type": "uint8",
+                "internalType": "uint8"
+            },
+            {
+                "name": "cam_x",
+                "type": "int32",
+                "internalType": "int32"
+            },
+            {
+                "name": "cam_y",
+                "type": "int32",
+                "internalType": "int32"
+            },
+            {
+                "name": "cam_z",
+                "type": "int32",
+                "internalType": "int32"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bytes",
+                "internalType": "bytes"
+            }
+        ]
     }
 ] as const;
 
-export const RAYSTYLUS_ADDRESS = "0xdacedfea4e645c34717cf97aa9e3a622fbd05e0b";
+// ============================================
+// CONTRACT ADDRESS - UPDATE AFTER DEPLOYMENT
+// ============================================
+export const RAYSTYLUS_ADDRESS = "0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757" as const;

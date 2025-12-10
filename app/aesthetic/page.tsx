@@ -2,10 +2,12 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useAccount, useChainId } from 'wagmi';
-import { useAestheticMint } from '@/app/hooks/useAestheticMint';
+import { useAestheticMint, useAestheticParams } from '@/app/hooks/useAestheticMint';
+import { ConnectButtonWrapper } from '@/app/components/ConnectButtonWrapper';
+import { AIChat } from '@/app/components/AIChat';
 import { RaccoonLogo } from '@/app/components/Logo';
-import { ScrollAnimation } from '@/app/components/ui/ScrollAnimation';
-import { Settings, Palette, Camera, Terminal, Gift, Zap } from 'lucide-react';
+import { Settings, Palette, Camera, Terminal, Gift, Zap, Eye, Layers, Activity, Cpu, Sparkles, Brain } from 'lucide-react';
+import { renderSphereToCanvas } from '@/app/utils/sphereRenderer';
 
 const Label = ({ icon: Icon, children }: { icon?: any; children: React.ReactNode }) => (
   <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
@@ -69,54 +71,110 @@ const Marquee = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function AestheticPage() {
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { state, error, result, mint, renderToken, reset } = useAestheticMint();
+  const minting = useAestheticMint();
+  const params = useAestheticParams();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const [displayedImage, setDisplayedImage] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('');
-  const [warmth, setWarmth] = useState(50);
-  const [intensity, setIntensity] = useState(50);
-  const [depth, setDepth] = useState(50);
+  const [previewColors, setPreviewColors] = useState<{sphere_r: number; sphere_g: number; sphere_b: number} | null>(null);
 
-  const handleMint = async () => {
+  // Render sphere preview when preview colors change
+  useEffect(() => {
+    if (previewColors && canvasRef.current) {
+      renderSphereToCanvas(canvasRef.current, {
+        sphereColor: {
+          r: previewColors.sphere_r,
+          g: previewColors.sphere_g,
+          b: previewColors.sphere_b,
+        },
+        bgColor1: {
+          r: Math.round(15 * 2.55),
+          g: Math.round(18 * 2.55),
+          b: Math.round(14 * 2.55),
+        },
+        bgColor2: {
+          r: Math.round(91 * 2.55 / 10),
+          g: Math.round(127 * 2.55 / 10),
+          b: Math.round(213 * 2.55 / 10),
+        },
+        width: 512,
+        height: 512,
+      });
+    }
+  }, [previewColors]);
+
+  // Handle preview aesthetic (VIEW function - FREE!)
+  const handlePreview = async () => {
     try {
-      setStatusMessage('⏳ Sending transaction...');
-      
-      const tokenId = await mint({
-        warmth: warmth / 100,
-        intensity: intensity / 100,
-        depth: depth / 100,
+      const preview = await minting.previewAesthetic(params.config);
+      if (preview) {
+        setPreviewColors(preview);
+      }
+    } catch (err) {
+      console.error('Preview error:', err);
+    }
+  };
+
+  // Handle mint (STATE function - PAYS GAS)
+  const handleMint = async () => {
+    if (!previewColors) {
+      alert('Preview colors first!');
+      return;
+    }
+
+    try {
+      const config = {
+        ...params.config,
         bgColor1: { r: 0.1, g: 0.1, b: 0.15 },
         bgColor2: { r: 0.05, g: 0.05, b: 0.1 },
         camera: { x: 0, y: 0, z: 2.5 },
-      });
+      };
 
-      if (tokenId) {
-        setStatusMessage('✓ Rendering image...');
-        const imageUrl = await renderToken(tokenId);
-        if (imageUrl) {
-          setDisplayedImage(imageUrl);
-          setStatusMessage(`✓ Transaction confirmed!`);
-        }
+      const txHash = await minting.mint(config, previewColors as any);
+
+      if (txHash && minting.result?.imageUrl) {
+        setDisplayedImage(minting.result.imageUrl);
       }
     } catch (err) {
       console.error('Mint error:', err);
-      setStatusMessage('❌ Mint failed. Check console.');
     }
   };
 
   const handleReset = () => {
-    reset();
+    minting.reset();
+    params.reset();
     setDisplayedImage(null);
-    setStatusMessage('');
-    setWarmth(50);
-    setIntensity(50);
-    setDepth(50);
+    setPreviewColors(null);
   };
 
-  const isLoading = state === 'pending' || state === 'confirming';
-  const canMint = isConnected && !isLoading && displayedImage === null;
+  // Handle config from AI
+  const handleConfigFromAI = (aiConfig: any) => {
+    const newConfig = { ...params.config };
+    
+    if (aiConfig.warmth !== undefined) newConfig.warmth = aiConfig.warmth;
+    if (aiConfig.intensity !== undefined) newConfig.intensity = aiConfig.intensity;
+    if (aiConfig.depth !== undefined) newConfig.depth = aiConfig.depth;
+    
+    // Update all parameters
+    params.updateWarmth(newConfig.warmth);
+    params.updateIntensity(newConfig.intensity);
+    params.updateDepth(newConfig.depth);
+    
+    // Auto-preview after update
+    setTimeout(() => {
+      minting.previewAesthetic(newConfig).then(preview => {
+        if (preview) setPreviewColors(preview);
+      });
+    }, 300);
+  };
+
+  const isPreviewing = minting.state === 'previewing';
+  const isMinting = minting.state === 'pending' || minting.state === 'confirming';
+  const isMinted = minting.state === 'confirmed' && displayedImage;
+  const canPreview = isConnected && !isPreviewing && !isMinting && !isMinted;
+  const canMint = isConnected && previewColors && !isMinting && !isMinted;
 
   return (
     <div className="h-screen bg-[#050605] text-gray-200 flex flex-col font-sans selection:bg-[#4adc80] selection:text-black overflow-hidden">
@@ -143,6 +201,7 @@ export default function AestheticPage() {
               {chainId === 421614 ? 'Arbitrum Sepolia' : 'Wrong Network'}
             </span>
           </div>
+          <ConnectButtonWrapper />
         </div>
       </header>
 
@@ -151,18 +210,71 @@ export default function AestheticPage() {
         <aside className="w-80 bg-[#0a0c0a]/95 border-l border-white/5 flex flex-col overflow-hidden backdrop-blur-sm">
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
             
+            {/* Section: Settings */}
+            <div>
+              <Label icon={Settings}>Global Settings</Label>
+              <div className="relative group">
+                <select disabled className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-gray-400 appearance-none cursor-not-allowed">
+                  <option>32x32 (On-Chain Native)</option>
+                </select>
+                <div className="absolute right-3 top-3 text-gray-600">
+                  <Layers size={14} />
+                </div>
+              </div>
+            </div>
+
             {/* Section: Aesthetic Parameters */}
             <div>
               <Label icon={Palette}>Aesthetic Parameters</Label>
               <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-5">
-                <RangeSlider label="Warmth" min="0" max="100" value={warmth} onChange={(e: any) => setWarmth(Number(e.target.value))} />
-                <RangeSlider label="Intensity" min="0" max="100" value={intensity} onChange={(e: any) => setIntensity(Number(e.target.value))} />
-                <RangeSlider label="Depth" min="0" max="100" value={depth} onChange={(e: any) => setDepth(Number(e.target.value))} />
+                <RangeSlider 
+                  label="Warmth" 
+                  min="0" 
+                  max="100" 
+                  value={Math.round(params.config.warmth * 100)} 
+                  onChange={(e: any) => params.updateWarmth(Number(e.target.value) / 100)} 
+                />
+                <RangeSlider 
+                  label="Intensity" 
+                  min="0" 
+                  max="100" 
+                  value={Math.round(params.config.intensity * 100)} 
+                  onChange={(e: any) => params.updateIntensity(Number(e.target.value) / 100)} 
+                />
+                <RangeSlider 
+                  label="Depth" 
+                  min="0" 
+                  max="100" 
+                  value={Math.round(params.config.depth * 100)} 
+                  onChange={(e: any) => params.updateDepth(Number(e.target.value) / 100)} 
+                />
               </div>
               <p className="text-[10px] text-gray-600 mt-2">Adjust style parameters for ML inference</p>
             </div>
 
-            {/* Section: Camera (Disabled for now) */}
+            {/* Section: Preview Color Result */}
+            {previewColors && (
+              <div>
+                <Label icon={Eye}>Preview Result</Label>
+                <div className="bg-white/5 rounded-xl p-4 border border-[#4adc80]/30 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-16 h-16 rounded-lg border border-white/10 shadow-lg"
+                      style={{
+                        backgroundColor: `rgb(${previewColors.sphere_r}, ${previewColors.sphere_g}, ${previewColors.sphere_b})`
+                      }}
+                    ></div>
+                    <div className="flex-1 font-mono text-xs">
+                      <p className="text-gray-400">Sphere Color</p>
+                      <p className="text-[#4adc80]">RGB({previewColors.sphere_r}, {previewColors.sphere_g}, {previewColors.sphere_b})</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-500">ML inference complete - ready to mint!</p>
+                </div>
+              </div>
+            )}
+
+            {/* Section: Camera */}
             <div>
               <Label icon={Camera}>Camera Position</Label>
               <div className="relative group">
@@ -190,8 +302,23 @@ export default function AestheticPage() {
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-500">ML Model</span>
-                  <span className={state === 'idle' ? "text-green-400" : state === 'pending' || state === 'confirming' ? "text-yellow-400 animate-pulse" : state === 'confirmed' ? "text-green-400" : "text-red-400"}>
-                    {state === 'idle' ? 'READY' : state === 'pending' ? 'COMPUTING' : state === 'confirming' ? 'CONFIRMING' : state === 'confirmed' ? 'COMPLETE' : 'ERROR'}
+                  <span className={
+                    minting.state === 'idle' ? "text-green-400" : 
+                    minting.state === 'previewing' ? "text-yellow-400 animate-pulse" :
+                    minting.state === 'pending' || minting.state === 'confirming' ? "text-yellow-400 animate-pulse" : 
+                    minting.state === 'confirmed' ? "text-green-400" : "text-red-400"
+                  }>
+                    {minting.state === 'idle' ? 'READY' : 
+                     minting.state === 'previewing' ? 'INFERENCING' :
+                     minting.state === 'pending' ? 'MINTING' : 
+                     minting.state === 'confirming' ? 'CONFIRMING' : 
+                     minting.state === 'confirmed' ? 'COMPLETE' : 'ERROR'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Preview</span>
+                  <span className={previewColors ? 'text-green-400' : 'text-gray-500'}>
+                    {previewColors ? 'READY' : 'PENDING'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -200,51 +327,109 @@ export default function AestheticPage() {
                     {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Chain</span>
-                  <span className="text-[#4adc80]">ARB_SEPOLIA</span>
-                </div>
               </div>
 
-              {(statusMessage || error) && (
-                <div className={`mt-3 p-2 rounded border-l-2 text-xs ${error ? 'bg-red-500/10 border-red-500 text-red-200' : 'bg-blue-500/10 border-blue-500 text-blue-200'}`}>
-                  {statusMessage || error}
+              {minting.error && (
+                <div className={`mt-3 p-2 rounded border-l-2 text-xs bg-red-500/10 border-red-500 text-red-200`}>
+                  {minting.error}
                 </div>
               )}
             </div>
 
-            {/* Network Fee Info */}
+            {/* Gas Fee Info */}
             <div className="bg-white/5 rounded-lg border border-white/10 p-3">
-              <p className="text-[10px] uppercase text-gray-500 font-bold mb-2">Est. Gas Fee</p>
-              <p className="text-sm font-mono text-[#4adc80]">$2 - $5 USD</p>
-              <p className="text-[10px] text-gray-600 mt-1">0.001 - 0.002 ETH</p>
+              <p className="text-[10px] uppercase text-gray-500 font-bold mb-2">Estimated Cost</p>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-300">
+                  <span className="text-gray-500">Preview: </span>
+                  <span className="text-[#4adc80] font-mono">FREE (VIEW)</span>
+                </p>
+                <p className="text-xs text-gray-300">
+                  <span className="text-gray-500">Mint: </span>
+                  <span className="text-[#4adc80] font-mono">$2 - $5 USD</span>
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
+            {/* Action Buttons */}
+            <div className="space-y-2">
+              {/* Preview Button */}
+              <button
+                onClick={handlePreview}
+                disabled={!canPreview}
+                className={`w-full py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 border ${
+                  canPreview
+                    ? 'bg-[#4adc80]/10 border-[#4adc80]/50 text-[#4adc80] hover:bg-[#4adc80]/20 hover:shadow-[0_0_15px_rgba(74,222,128,0.3)]'
+                    : 'bg-gray-800 border-transparent text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {isPreviewing ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                    Inferencing...
+                  </>
+                ) : previewColors ? (
+                  <>
+                    <Eye size={14} />
+                    Preview Ready ✓
+                  </>
+                ) : (
+                  <>
+                    <Eye size={14} />
+                    Preview Colors (FREE)
+                  </>
+                )}
+              </button>
+
+              {/* Mint Button */}
               <button
                 onClick={handleMint}
                 disabled={!canMint}
-                className={`col-span-1 py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 border ${canMint
-                  ? 'bg-[#4adc80]/10 border-[#4adc80]/50 text-[#4adc80] hover:bg-[#4adc80] hover:text-black hover:shadow-[0_0_15px_rgba(74,222,128,0.3)]'
-                  : 'bg-gray-800 border-transparent text-gray-500 cursor-not-allowed'
-                  }`}
+                className={`w-full py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 border relative overflow-hidden group ${
+                  canMint
+                    ? 'bg-[#4adc80]/10 border-[#4adc80]/50 text-[#4adc80] hover:bg-[#4adc80] hover:text-black hover:shadow-[0_0_15px_rgba(74,222,128,0.3)]'
+                    : 'bg-gray-800 border-transparent text-gray-500 cursor-not-allowed'
+                }`}
               >
-                {isLoading ? <div className="w-3 h-3 border-2 border-t-transparent border-current rounded-full animate-spin"/> : <Zap size={14} />}
-                {displayedImage ? 'Minted ✓' : 'Generate & Mint'}
+                {/* Mini Neural Network Badge */}
+                {canMint && !isMinting && !isMinted && (
+                  <span className="absolute top-0 right-0 inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-0.5 text-[7px] font-bold uppercase tracking-wider rounded-bl-lg">
+                    <Brain size={10} />
+                    ML
+                  </span>
+                )}
+                
+                {isMinting ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                    Minting...
+                  </>
+                ) : isMinted ? (
+                  <>
+                    <Zap size={14} />
+                    Minted ✓
+                  </>
+                ) : (
+                  <>
+                    <Zap size={14} />
+                    Mint NFT
+                  </>
+                )}
+              </button>
+
+              {/* Reset Button */}
+              <button
+                onClick={handleReset}
+                disabled={isMinting || (!displayedImage && !previewColors)}
+                className={`w-full py-3 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 shadow-lg ${
+                  displayedImage && !isMinting
+                    ? 'bg-gradient-to-r from-[#628141] to-[#3d4a24] text-white hover:brightness-110 shadow-[#628141]/20'
+                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Reset & Try Again
               </button>
             </div>
-
-            <button
-              onClick={handleReset}
-              disabled={isLoading || displayedImage === null}
-              className={`w-full py-3.5 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 shadow-lg ${
-                displayedImage && !isLoading
-                  ? 'bg-gradient-to-r from-[#628141] to-[#3d4a24] text-white hover:brightness-110 shadow-[#628141]/20'
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {displayedImage ? <>Reset & Mint Again</> : 'Mint First'}
-            </button>
           </div>
         </aside>
 
@@ -265,26 +450,20 @@ export default function AestheticPage() {
                   className="block bg-[#050605] image-pixelated w-[512px] h-[512px] shadow-inner rounded-sm"
                 />
               ) : (
-                <div className="w-[512px] h-[512px] bg-[#050605] flex items-center justify-center relative">
-                  {/* Loading Overlay */}
-                  {isLoading && (
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center rounded-sm">
-                      <div className="text-[#4adc80] font-mono text-xs animate-pulse tracking-widest">
-                        COMPUTING...
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Empty State */}
-                  {!isLoading && (
-                    <div className="text-center">
-                      <div className="w-32 h-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded border border-gray-700 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-[#4adc80]">▊</span>
-                      </div>
-                      <p className="text-gray-500 text-sm">Adjust parameters & click</p>
-                      <p className="text-gray-600 text-xs mt-1">Generate & Mint to render</p>
-                    </div>
-                  )}
+                <canvas
+                  ref={canvasRef}
+                  width={512}
+                  height={512}
+                  className="block bg-[#050605] image-pixelated w-[512px] h-[512px] shadow-inner rounded-sm"
+                />
+              )}
+
+              {/* Loading Overlay */}
+              {(isPreviewing || isMinting) && (
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center rounded-sm">
+                  <div className="text-[#4adc80] font-mono text-xs animate-pulse tracking-widest">
+                    {isPreviewing ? 'INFERENCING ML...' : 'MINTING...'}
+                  </div>
                 </div>
               )}
             </div>
@@ -300,21 +479,26 @@ export default function AestheticPage() {
           {/* Marquee Section */}
           <div className="mt-8 w-full max-w-4xl px-4">
             <Marquee>
-              3→4→2 Mini Neural Network (Input: Warmth, Intensity, Depth) • 
-              Fixed-Point i64 Inference on Arbitrum Stylus • 
-              On-Chain ML Model • Fast GPU-Like Computation •
+              3→4→2 <span className="text-purple-400 font-semibold">Mini Neural Network</span> (Input: Warmth, Intensity, Depth) • 
+              Fixed-Point i64 Inference on <span className="text-[#4adc80] font-semibold">Arbitrum Stylus</span> • 
+              On-Chain <span className="text-blue-400 font-semibold">ML Model</span> • Fast <span className="text-yellow-400 font-semibold">GPU-Like</span> Computation •
             </Marquee>
           </div>
 
           {/* Footer Info */}
           <div className="mt-8 max-w-2xl text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
-              <Gift size={14} className="text-[#4adc80]" />
+              <Activity size={14} className="text-[#4adc80]" />
               <p className="text-xs text-gray-400">
-                Powered by <span className="text-gray-200 font-semibold">Rust ML</span> & <span className="text-gray-200 font-semibold">WebAssembly</span> on Arbitrum Stylus
+                <span className="text-gray-200 font-semibold">Rust ML</span> + <span className="text-purple-400 font-semibold">Neural Network</span> + <span className="text-gray-200 font-semibold">WebAssembly</span> on <span className="text-[#4adc80] font-semibold">Arbitrum Stylus</span>
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Right Sidebar - AI Chat Panel */}
+        <div className="w-72 flex-shrink-0 h-full flex flex-col">
+          <AIChat onConfigReceived={handleConfigFromAI} />
         </div>
       </main>
     </div>

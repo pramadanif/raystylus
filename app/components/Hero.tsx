@@ -18,13 +18,15 @@ export const Hero = () => {
     { title: "RAYSTYLUS", subtitle: "ON-CHAIN ENGINE" },
     { title: "RAYTRACING", subtitle: "ON ARBITRUM STYLUS" },
     { title: "INTEGRATED", subtitle: "AI & WASM" },
+    { title: "NEURAL", subtitle: "NETWORK 3→4→2" },
 ];
 
 const subtitles = [
     "Executing complex ray tracing logic on-chain.",
     "High-frequency rendering via Rust smart contracts.",
-    "The world’s first gas-optimized 3D graphics engine.",
-    "Connecting AI-level language with system-level computation."
+    "The world's first gas-optimized 3D graphics engine.",
+    "Connecting AI-level language with system-level computation.",
+    "Mini Neural Network running on Arbitrum Stylus blockchain."
 ];
 
   useEffect(() => {
@@ -191,8 +193,8 @@ const subtitles = [
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.6 }}
             >
-              Experience the first fully on-chain ray tracer built with Rust and WebAssembly. 
-              High-performance graphics computation directly on the Arbitrum blockchain.
+              Experience the first fully on-chain ray tracer with <span className="text-purple-400 font-semibold">AI-powered aesthetics</span> built with Rust and WebAssembly. 
+              <span className="text-blue-400 font-semibold"> 3→4→2 Neural Network</span> directly on the Arbitrum blockchain.
             </motion.p>
 
             {/* Blockchain Info */}
@@ -202,13 +204,19 @@ const subtitles = [
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.6 }}
             >
+              <div className="flex items-start gap-3 mb-3">
+                <div className="text-purple-400 text-lg">🧠</div>
+                <p className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Mini Neural Network</p>
+              </div>
+              <p className="text-sm text-gray-300 leading-relaxed mb-3">
+                3-input → 4-hidden → 2-output neural network inference on-chain. 
+                <span className="text-blue-400 font-semibold"> Fixed-point i64 arithmetic</span> for GPU-like performance.
+              </p>
               <p className="text-sm text-gray-300 leading-relaxed">
-                The 3D graphics you create are rendered on the blockchain, not on your PC. 
-                It executes thousands of complex vector mathematical operations 
-                (<span className="text-[#8BAE66] font-semibold">Dot Product</span>, 
+                The 3D graphics you create are rendered on the blockchain using <span className="text-[#8BAE66] font-semibold">Dot Product</span>, 
                 <span className="text-[#8BAE66] font-semibold"> Normalization</span>, 
-                <span className="text-[#8BAE66] font-semibold"> Quadratic Formula</span>) 
-                for every pixel in a single transaction.
+                <span className="text-[#8BAE66] font-semibold"> Quadratic Formula</span> - 
+                <span className="text-yellow-400 font-semibold"> powered by ML inference</span>.
               </p>
             </motion.div>
 
@@ -226,6 +234,15 @@ const subtitles = [
                 className="px-8 py-4 bg-[#8BAE66] hover:bg-[#9BC97A] text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(139,174,102,0.4)] flex items-center justify-center group"
               >
                 LAUNCH STUDIO
+                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </motion.a>
+              <motion.a 
+                href="/aesthetic" 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center justify-center group"
+              >
+                AESTHETIC 🧠
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </motion.a>
               <motion.a 

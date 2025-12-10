@@ -94,7 +94,7 @@ export default function StudioPage() {
         bgColor2: '#5B7FD5',
         cameraX: 0,
         cameraY: 0,
-        cameraZ: 0,
+        cameraZ: 3,
     });
 
     const [mintMessage, setMintMessage] = useState<string>('');

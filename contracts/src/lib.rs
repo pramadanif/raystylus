@@ -9,21 +9,18 @@ use stylus_sdk::abi::Bytes;
 use stylus_sdk::alloy_primitives::{Address, U256};
 use stylus_sdk::msg;
 use stylus_sdk::storage::{StorageMap, StorageBytes, StorageU256, StorageAddress};
-use core::convert::TryInto;
 
 // ==========================================================
 // ========== 1. ML INFERENCE MODULE (Mini NN - Fixed-Point) ==========
 // ==========================================================
 
-// Fixed-Point Scale (10^18)
+// Fixed-Point Scale (10^18) - All ML computations use this scale
 const ML_SCALE: i64 = 1_000_000_000_000_000_000;
 const HALF_SCALE: i64 = 500_000_000_000_000_000;
 
 // --- MNN WEIGHTS AND BIASES (Trained with 1000 Samples) ---
 
 // --- LAYER 1: INPUT (3) -> HIDDEN (4) ---
-
-// W_1 Matrix (INPUT -> HIDDEN): Shape (4, 3)
 const W1: [[i64; 3]; 4] = [
     [567938987432345600, -1027907238687145984, 687906701138984960], 
     [-519756979153928192, -297215172857036800, 567038006372859904], 
@@ -31,7 +28,6 @@ const W1: [[i64; 3]; 4] = [
     [-379177786113261568, -505057986159312896, 155223330712977408]
 ];
 
-// B_1 Vector (HIDDEN LAYER BIASES): Shape (4)
 const B1: [i64; 4] = [
     640866501326274560, 
     413779107801726976, 
@@ -40,103 +36,115 @@ const B1: [i64; 4] = [
 ];
 
 // --- LAYER 2: HIDDEN (4) -> OUTPUT (2) ---
-
-// W_2 Matrix (HIDDEN -> OUTPUT): Shape (2, 4)
 const W2: [[i64; 4]; 2] = [
     [262302328600657920, -581599938371125248, -1118118525613899776, 604784103115456512], 
     [-1509882490049789952, -735249060490903552, 982777096730312704, -349181700158259200]
 ];
 
-// B_2 Vector (OUTPUT LAYER BIASES): Shape (2)
 const B2: [i64; 2] = [
     -178075408585981952, 
     -350273790082547712
 ];
 
+// --- ACTIVATION FUNCTIONS ---
 
-// --- FIXED-POINT ACTIVATION FUNCTIONS ---
-
-/// Implements Rectified Linear Unit (ReLU): max(0, x).
+/// ReLU activation: max(0, x)
 fn relu(x: i64) -> i64 {
     if x > 0 { x } else { 0 }
 }
 
-/// Implements Sigmoid (Approximation): 1 / (1 + e^(-x)).
-/// Uses a crude piecewise linear approximation for gas efficiency on Stylus.
-/// (Result approximates the fixed-point value in range [0, ML_SCALE])
-fn sigmoid_approx(x: i64) -> i64 {
-    // If x is large positive, result approaches 1.0 (ML_SCALE)
-    if x >= 3 * ML_SCALE {
-        ML_SCALE
+/// Safe sigmoid approximation with bounds checking
+fn sigmoid_approx_safe(x: i64) -> i64 {
+    // Bounds check before computation - fast path for extreme values
+    // Use safe comparison to avoid overflow: 3 * ML_SCALE would overflow i64
+    const THREE_TIMES_ML_SCALE: i64 = 3_000_000_000_000_000_000i64;
+    
+    if x >= THREE_TIMES_ML_SCALE {
+        return ML_SCALE;
     } 
-    // If x is large negative, result approaches 0.0
-    else if x <= -3 * ML_SCALE {
-        0
-    } 
-    // Linear slope around x=0 (0.5 + 0.1667 * x approximation)
-    else {
-        // 0.1667 fixed-point (approx 1/6)
-        const ONE_SIXTH_FP: i64 = 166_666_666_666_666_667; 
-        
-        // Linear part: 0.1667 * x
-        let linear_term = (x as i128 * ONE_SIXTH_FP as i128 / ML_SCALE as i128) as i64;
-
-        // Final approximation: 0.5 + linear_term
-        HALF_SCALE + linear_term
+    if x <= -THREE_TIMES_ML_SCALE {
+        return 0;
     }
+
+    const ONE_SIXTH_FP: i64 = 166_666_666_666_666_667;
+    
+    // For intermediate values, use safe calculation
+    // Prevent overflow in multiplication by checking bounds
+    let x_abs = x.abs();
+    
+    if x_abs > i64::MAX / 2 {
+        // Value too large, return extreme sigmoid value
+        return if x > 0 { ML_SCALE } else { 0 };
+    }
+    
+    // Safe fixed-point calculation: (x * ONE_SIXTH) / ML_SCALE
+    let product = (x as i128).saturating_mul(ONE_SIXTH_FP as i128);
+    let linear_term = product.saturating_div(ML_SCALE as i128) as i64;
+    
+    // Final result: 0.5 + linear_term, clamped to valid range
+    HALF_SCALE.saturating_add(linear_term)
 }
 
-
-/// Performs Mini Neural Network Inference (3 -> 4 -> 2).
-/// Input: Style Vector [Warmth, Intensity, Depth] in 10^18 scale.
-/// Output: 2D Vector [Sphere R, Sphere G] in 10^18 scale (Normalized 0.0 - 1.0).
+/// ML Inference: 2-layer neural network (3 -> 4 -> 2)
+/// Input: [warmth, intensity, depth] in fixed-point (10^18 scale)
+/// Output: [sphere_r, sphere_g] in fixed-point (0 to 10^18)
 pub fn infer_aesthetic(style_vector: [i64; 3]) -> [i64; 2] {
     let mut hidden_output = [0i64; 4];
     let mut final_output = [0i64; 2];
 
-    // --- STEP 1: INPUT -> HIDDEN LAYER (Linear + ReLU) ---
-    // Y_H = ReLU(W1 * X + B1)
-    for i in 0..4 { // Iterate through 4 hidden neurons
+    // --- LAYER 1: INPUT -> HIDDEN ---
+    for i in 0..4 {
         let mut sum: i64 = 0;
         
-        // Matrix Multiplication: W1 * X
-        for j in 0..3 { // Iterate through 3 inputs
-            // Fixed-point multiplication (W * X) / SCALE
-            // Using i128 to prevent overflow in the multiplication step
-            sum += (W1[i][j] as i128 * style_vector[j] as i128 / ML_SCALE as i128) as i64;
+        for j in 0..3 {
+            let w = W1[i][j];
+            let x = style_vector[j];
+            
+            // Skip zero multiplications to save gas
+            if w == 0 || x == 0 {
+                continue;
+            }
+            
+            // Safe fixed-point multiplication
+            let product = (w as i128).saturating_mul(x as i128);
+            let result = product.saturating_div(ML_SCALE as i128) as i64;
+            
+            // Use saturating_add to prevent overflow
+            sum = sum.saturating_add(result);
         }
 
-        let z1 = sum + B1[i]; // Add Bias (Z1)
-        
-        // Apply Activation: ReLU(z1)
+        let z1 = sum.saturating_add(B1[i]);
         hidden_output[i] = relu(z1); 
     }
 
-    // --- STEP 2: HIDDEN -> OUTPUT LAYER (Linear + Sigmoid Approximation) ---
-    // Y_O = Sigmoid(W2 * Y_H + B2)
-    for i in 0..2 { // Iterate through 2 output neurons (R and G)
+    // --- LAYER 2: HIDDEN -> OUTPUT ---
+    for i in 0..2 {
         let mut sum: i64 = 0;
         
-        // Matrix Multiplication: W2 * Y_H
-        for j in 0..4 { // Iterate through 4 hidden outputs
-            // Fixed-point multiplication (W * Y_H) / SCALE
-            sum += (W2[i][j] as i128 * hidden_output[j] as i128 / ML_SCALE as i128) as i64;
+        for j in 0..4 {
+            let w = W2[i][j];
+            let y = hidden_output[j];
+            
+            if w == 0 || y == 0 {
+                continue;
+            }
+            
+            let product = (w as i128).saturating_mul(y as i128);
+            let result = product.saturating_div(ML_SCALE as i128) as i64;
+            
+            sum = sum.saturating_add(result);
         }
 
-        let z2 = sum + B2[i]; // Add Bias (Z2)
-        
-        // Apply Output Activation: Sigmoid Approximation(z2)
-        final_output[i] = sigmoid_approx(z2); 
+        let z2 = sum.saturating_add(B2[i]);
+        final_output[i] = sigmoid_approx_safe(z2); 
     }
 
     final_output
 }
 
-
 #[storage]
 #[entrypoint]
 pub struct Contract {
-// ... (STRUCT INI TETAP SAMA)
     pub owners: StorageMap<U256, StorageAddress>,
     pub token_data: StorageMap<U256, StorageBytes>,
     pub total_supply: StorageU256,
@@ -145,54 +153,94 @@ pub struct Contract {
 #[public]
 impl Contract {
     // ===============================================================
-    // ========== NEW ENTRYPOINT: MINT BY AESTHETIC (DUAL-COMPUTE) ====
+    // ========== VIEW FUNCTION: Get Aesthetic Colors (FREE!) ====
     // ===============================================================
 
-    /// MINT_BY_AESTHETIC: Uses On-Chain ML Inference to determine parameters.
-    /// The style_vector input must be pre-scaled (e.g., 0.0-1.0 multiplied by 10^18).
-    pub fn mint_by_aesthetic(
-        &mut self,
-        // HAPUS INI: style_vector: [i64; 3], 
-        // GANTI DENGAN 3 VARIABLE INI:
+    /// VIEW_AESTHETIC: Compute aesthetic colors using ML inference
+    /// 
+    /// This is a VIEW function - it does NOT modify state and costs NO GAS!
+    /// Use this to preview colors before minting.
+    ///
+    /// Parameters:
+    /// - style_warmth_u256: Warmth (0 to 10^18, where 10^18 = 1.0)
+    /// - style_intensity_u256: Intensity (0 to 10^18)
+    /// - style_depth_u256: Depth (0 to 10^18)
+    ///
+    /// Returns: (sphere_r, sphere_g, sphere_b) RGB values 0-255
+    pub fn view_aesthetic(
+        &self,
         style_warmth_u256: U256,
         style_intensity_u256: U256,
-        style_depth_u256: U256,// Input 3
+        style_depth_u256: U256,
+    ) -> (u8, u8, u8) {
+        // Maximum expected value: 10^18
+        let max_value = U256::from(ML_SCALE as u64);
         
-        bg_color1_r: u8,
-        bg_color1_g: u8,
-        bg_color1_b: u8,
-        bg_color2_r: u8,
-        bg_color2_g: u8,
-        bg_color2_b: u8,
-        cam_x: i32,
-        cam_y: i32,
-        cam_z: i32,
-    ) -> U256 {
-        // Gabungkan kembali menjadi array di dalam contract untuk diproses ML
-        let w = style_warmth_u256.try_into().unwrap_or(0u64) as i64;
-        let i = style_intensity_u256.try_into().unwrap_or(0u64) as i64;
-        let d = style_depth_u256.try_into().unwrap_or(0u64) as i64;
+        // Validate inputs
+        if style_warmth_u256 > max_value {
+            return (0, 0, 0);
+        }
+        if style_intensity_u256 > max_value {
+            return (0, 0, 0);
+        }
+        if style_depth_u256 > max_value {
+            return (0, 0, 0);
+        }
 
+        // Safe U256 -> i64 conversion
+        let w: i64 = match u64::try_from(style_warmth_u256) {
+            Ok(val) => val as i64,
+            Err(_) => i64::MAX,
+        };
+
+        let i: i64 = match u64::try_from(style_intensity_u256) {
+            Ok(val) => val as i64,
+            Err(_) => i64::MAX,
+        };
+
+        let d: i64 = match u64::try_from(style_depth_u256) {
+            Ok(val) => val as i64,
+            Err(_) => i64::MAX,
+        };
+
+        // Run ML inference
         let style_vector = [w, i, d];
         let inferred_output = infer_aesthetic(style_vector);
-        // ... (SISA KODE SAMA PERSIS KE BAWAH) ...
+
         let sphere_r_i64 = inferred_output[0];
         let sphere_g_i64 = inferred_output[1];
         
-        let sphere_r: u8 = ((sphere_r_i64 as i128 * 255i128 / ML_SCALE as i128).min(255).max(0)) as u8;
-        let sphere_g: u8 = ((sphere_g_i64 as i128 * 255i128 / ML_SCALE as i128).min(255).max(0)) as u8;
-        let sphere_b: u8 = sphere_g; 
+        // Convert fixed-point to 8-bit RGB
+        // Ensure values are clamped to [0, ML_SCALE] range first
+        let r_clamped = if sphere_r_i64 < 0 { 0 } else if sphere_r_i64 > ML_SCALE { ML_SCALE } else { sphere_r_i64 };
+        let g_clamped = if sphere_g_i64 < 0 { 0 } else if sphere_g_i64 > ML_SCALE { ML_SCALE } else { sphere_g_i64 };
+        
+        // Safe conversion: (value / ML_SCALE) * 255
+        let sphere_r: u8 = ((r_clamped as i128 * 255i128 / ML_SCALE as i128)
+            .min(255)
+            .max(0)) as u8;
 
-        self.mint(
-            sphere_r, sphere_g, sphere_b,
-            bg_color1_r, bg_color1_g, bg_color1_b,
-            bg_color2_r, bg_color2_g, bg_color2_b,
-            cam_x, cam_y, cam_z,
-        )
+        let sphere_g: u8 = ((g_clamped as i128 * 255i128 / ML_SCALE as i128)
+            .min(255)
+            .max(0)) as u8;
+
+        let sphere_b: u8 = sphere_g;
+
+        (sphere_r, sphere_g, sphere_b)
     }
 
+    // ===============================================================
+    // ========== STATE FUNCTION: Mint Token with Colors ====
+    // ===============================================================
 
-    /// MINT: Save token data with safe arithmetic
+    /// MINT: Save token data with rendering parameters
+    /// 
+    /// Parameters:
+    /// - sphere_r, sphere_g, sphere_b: Sphere color (RGB 0-255)
+    /// - bg_color1_*, bg_color2_*: Background gradient colors
+    /// - cam_x, cam_y, cam_z: Camera position
+    ///
+    /// Returns: Token ID (auto-incremented starting from 0)
     pub fn mint(
         &mut self,
         sphere_r: u8,
@@ -208,11 +256,17 @@ impl Contract {
         cam_y: i32,
         cam_z: i32,
     ) -> U256 {
+        // Get current total supply
         let token_id = self.total_supply.get();
+
+        // Update total supply
         let new_supply = token_id + U256::from(1);
         self.total_supply.set(new_supply);
+
+        // Store owner
         self.owners.setter(token_id).set(msg::sender());
 
+        // Pack 21 bytes: 9 color bytes + 12 camera bytes
         let mut data: Vec<u8> = Vec::new();
         data.push(sphere_r);
         data.push(sphere_g);
@@ -224,6 +278,7 @@ impl Contract {
         data.push(bg_color2_g);
         data.push(bg_color2_b);
         
+        // Add camera coordinates as little-endian bytes
         for byte in cam_x.to_le_bytes().iter() {
             data.push(*byte);
         }
@@ -234,7 +289,9 @@ impl Contract {
             data.push(*byte);
         }
 
+        // Store token data
         self.token_data.setter(token_id).set_bytes(data);
+
         token_id
     }
 
@@ -278,7 +335,6 @@ impl Contract {
     }
 
     /// RENDER SCENE: Core rendering logic with safe arithmetic
-    #[allow(unused_variables)]
     pub fn renderScene(
         &self,
         sphere_r: u8,
@@ -294,17 +350,18 @@ impl Contract {
         cam_y: i32,
         cam_z: i32,
     ) -> Bytes {
-        // ... (KODE RENDERSCENE LAMA TETAP SAMA) ...
         const WIDTH: i32 = 32;
         const HEIGHT: i32 = 32;
         const SCALE: i32 = 1024;
 
         let mut pixels = Vec::with_capacity((WIDTH * HEIGHT * 3) as usize);
 
+        // Use saturating arithmetic to prevent panics
+        // Camera Z position affects depth perception and view distance
         let origin = Vec3::new(
             cam_x.saturating_mul(SCALE),
             cam_y.saturating_mul(SCALE),
-            (2_i64 * SCALE as i64 + SCALE as i64 / 2) as i32,
+            cam_z.saturating_mul(SCALE),
         );
 
         let sphere_pos = Vec3::new(0, 0, 0);
@@ -331,9 +388,11 @@ impl Contract {
                 let a_val = a as i64;
                 let c_val = c as i64;
                 
+                // Safe discriminant calculation
                 let discriminant = b_val.saturating_mul(b_val).saturating_sub(4i64.saturating_mul(a_val).saturating_mul(c_val));
 
                 let (r, g, b) = if discriminant > 0 {
+                    // Safe square root calculation
                     let sqrt_disc = if discriminant <= i64::MAX {
                         discriminant.isqrt()
                     } else {
@@ -380,7 +439,6 @@ impl Contract {
 
     /// ADD BMP HEADER: Convert pixel data to BMP format
     fn add_bmp_header(&self, pixel_data: Bytes) -> Bytes {
-        // ... (KODE BMP HEADER LAMA TETAP SAMA) ...
         let width: u32 = 32;
         let file_size: u32 = 54 + pixel_data.len() as u32;
 
@@ -426,11 +484,10 @@ impl Contract {
     }
 }
 
-// ============ HELPER STRUCTS (REMAINS THE SAME) ============
+// ============ HELPER STRUCTS ============
 
 #[derive(Clone, Copy)]
 struct Vec3 {
-// ... (KODE VEC3 TETAP SAMA)
     x: i32,
     y: i32,
     z: i32,

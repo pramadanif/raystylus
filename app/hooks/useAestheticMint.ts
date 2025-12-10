@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
-// Pastikan ABI di file ini sudah diupdate sesuai instruksi di bawah kode ini
 import { RAYSTYLUS_ABI, RAYSTYLUS_ADDRESS } from '@/app/abi/RayStylus';
 import {
   scaleToFixedPoint,
@@ -14,15 +13,13 @@ import {
 import { renderBmpImage, parseBmpHeader } from '@/app/utils/bmpRenderer';
 
 /**
- * Configuration for the aesthetic minting flow
+ * Configuration for aesthetic minting
  */
 export interface AestheticMintConfig {
-  // Aesthetic parameters (0.0-1.0)
   warmth: number;
   intensity: number;
   depth: number;
 
-  // Static ray tracing parameters
   bgColor1: {
     r: number;
     g: number;
@@ -41,12 +38,21 @@ export interface AestheticMintConfig {
 }
 
 /**
- * State of the minting transaction
+ * Preview result from view_aesthetic
  */
-export type MintingState = 'idle' | 'pending' | 'confirming' | 'confirmed' | 'failed';
+export interface AestheticPreview {
+  sphere_r: number;
+  sphere_g: number;
+  sphere_b: number;
+}
 
 /**
- * Result of a successful minting operation
+ * State of minting operation
+ */
+export type MintingState = 'idle' | 'previewing' | 'pending' | 'confirming' | 'confirmed' | 'failed';
+
+/**
+ * Result of successful minting
  */
 export interface MintingResult {
   tokenId: string;
@@ -60,7 +66,11 @@ export interface MintingResult {
 }
 
 /**
- * Hook for handling aesthetic-based minting with ML inference
+ * Hook for aesthetic-based minting with ML inference
+ * 
+ * NEW WORKFLOW:
+ * 1. previewAesthetic() - VIEW function (FREE!) - get ML colors
+ * 2. mint() - STATE function (pays gas) - create NFT
  */
 export const useAestheticMint = () => {
   const { address, isConnected } = useAccount();
@@ -72,9 +82,10 @@ export const useAestheticMint = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MintingResult | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [preview, setPreview] = useState<AestheticPreview | null>(null);
 
   /**
-   * Validates and clamps aesthetic configuration values
+   * Validates and clamps configuration values
    */
   const validateConfig = useCallback((config: AestheticMintConfig): AestheticMintConfig => {
     return {
@@ -100,16 +111,20 @@ export const useAestheticMint = () => {
   }, []);
 
   /**
-   * Primary minting function
-   * Calls mint_by_aesthetic with preprocessed parameters
+   * STEP 1: Preview aesthetic colors using ML inference (VIEW function - FREE!)
+   * 
+   * This calls view_aesthetic which is a VIEW function:
+   * - No gas cost
+   * - No blockchain transaction
+   * - Instant result
+   * - Perfect for previewing before minting
    */
-  const mint = useCallback(
-    async (config: AestheticMintConfig): Promise<string | null> => {
+  const previewAesthetic = useCallback(
+    async (config: AestheticMintConfig): Promise<AestheticPreview | null> => {
       try {
         setError(null);
-        setState('pending');
+        setState('previewing');
 
-        // Validate wallet connection
         if (!isConnected || !address) {
           throw new Error('Wallet not connected');
         }
@@ -118,44 +133,144 @@ export const useAestheticMint = () => {
           throw new Error('Public client not available');
         }
 
-        // Validate and clamp config
         const validatedConfig = validateConfig(config);
 
-        console.log('🎨 Aesthetic Minting Parameters:');
+        console.log('🎨 Previewing Aesthetic Colors (FREE VIEW FUNCTION):');
         console.log('  Warmth:', validatedConfig.warmth);
         console.log('  Intensity:', validatedConfig.intensity);
         console.log('  Depth:', validatedConfig.depth);
 
-        // Create fixed-point style vector strings
+        // Create fixed-point style vector
         const styleVectorStrings = createStyleVector(
           validatedConfig.warmth,
           validatedConfig.intensity,
           validatedConfig.depth
         );
 
-        // --- FIXED: Convert and Destructure into Individual BigInts ---
-        // Kita tidak mengirim Array ke contract, tapi 3 argumen terpisah
         const [warmthBig, intensityBig, depthBig] = styleVectorStrings.map(BigInt);
 
-        console.log('✓ Style vector scaled to fixed-point (Individual Args):');
-        console.log(`  Arg 1 (Warmth): ${warmthBig}`);
-        console.log(`  Arg 2 (Intensity): ${intensityBig}`);
-        console.log(`  Arg 3 (Depth): ${depthBig}`);
+        console.log('✓ Style vector scaled to fixed-point:');
+        console.log(`  Warmth: ${warmthBig}`);
+        console.log(`  Intensity: ${intensityBig}`);
+        console.log(`  Depth: ${depthBig}`);
 
-        console.log('🚀 Submitting mint_by_aesthetic transaction...');
+        // Call VIEW function - completely FREE, no gas!
+        console.log('🔍 Calling view_aesthetic (FREE)...');
 
-        // Call mint_by_aesthetic with SPLIT ARGUMENTS
+        const result = await publicClient.readContract({
+          address: RAYSTYLUS_ADDRESS as `0x${string}`,
+          abi: RAYSTYLUS_ABI,
+          functionName: 'viewAesthetic',
+          args: [warmthBig, intensityBig, depthBig],
+        });
+
+        const previewResult: AestheticPreview = {
+          sphere_r: Number(result[0]),
+          sphere_g: Number(result[1]),
+          sphere_b: Number(result[2]),
+        };
+
+        console.log('✅ Preview result:');
+        console.log(`  R: ${previewResult.sphere_r}`);
+        console.log(`  G: ${previewResult.sphere_g}`);
+        console.log(`  B: ${previewResult.sphere_b}`);
+
+        setPreview(previewResult);
+        setState('idle');
+
+        return previewResult;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error('❌ Preview error:', errorMessage);
+        setError(errorMessage);
+        setState('failed');
+        return null;
+      }
+    },
+    [isConnected, address, publicClient, validateConfig]
+  );
+
+  /**
+   * STEP 2: Mint token with computed colors (STATE function - PAYS GAS)
+   * 
+   * After previewing with previewAesthetic(), call this to actually mint.
+   * This calls the mint() function which:
+   * - Stores token data
+   * - Creates NFT
+   * - Pays gas fee (normal range: 50K-100K)
+   */
+  const mint = useCallback(
+    async (config: AestheticMintConfig, previewResult: AestheticPreview): Promise<string | null> => {
+      try {
+        setError(null);
+        setState('pending');
+
+        if (!isConnected || !address) {
+          throw new Error('Wallet not connected');
+        }
+
+        if (!publicClient) {
+          throw new Error('Public client not available');
+        }
+
+        if (!previewResult) {
+          throw new Error('No preview data. Call previewAesthetic() first!');
+        }
+
+        const validatedConfig = validateConfig(config);
+
+        console.log('💾 Minting token with computed colors...');
+        console.log(`  Sphere RGB: (${previewResult.sphere_r}, ${previewResult.sphere_g}, ${previewResult.sphere_b})`);
+
+        // Estimate gas first
+        console.log('🔍 Estimating gas...');
+
+        try {
+          const gasEstimate = await publicClient.estimateContractGas({
+            address: RAYSTYLUS_ADDRESS as `0x${string}`,
+            abi: RAYSTYLUS_ABI,
+            functionName: 'mint',
+            account: address,
+            args: [
+              previewResult.sphere_r,
+              previewResult.sphere_g,
+              previewResult.sphere_b,
+              validatedConfig.bgColor1.r,
+              validatedConfig.bgColor1.g,
+              validatedConfig.bgColor1.b,
+              validatedConfig.bgColor2.r,
+              validatedConfig.bgColor2.g,
+              validatedConfig.bgColor2.b,
+              validatedConfig.camera.x,
+              validatedConfig.camera.y,
+              validatedConfig.camera.z,
+            ],
+          });
+
+          console.log(`⛽ Estimated gas: ${gasEstimate.toString()} units`);
+
+          if (gasEstimate > BigInt(500_000)) {
+            throw new Error(
+              `Gas estimate too high (${gasEstimate}). Expected 50K-100K. ` +
+              `Check contract or parameters.`
+            );
+          }
+        } catch (estimateErr) {
+          console.error('❌ Gas estimation failed:', estimateErr);
+          throw new Error('Contract execution would fail. Check inputs.');
+        }
+
+        console.log('🚀 Submitting mint transaction...');
+
+        // Call mint() - STATE function that pays gas
         const txHash = await writeContractAsync({
           address: RAYSTYLUS_ADDRESS as `0x${string}`,
           abi: RAYSTYLUS_ABI,
-          functionName: 'mint_by_aesthetic',
+          functionName: 'mint',
           args: [
-            // --- PERUBAHAN UTAMA DISINI ---
-            // Jangan kirim array, kirim variabel satu per satu
-            warmthBig,     // int64 (Style 1)
-            intensityBig,  // int64 (Style 2)
-            depthBig,      // int64 (Style 3)
-            
+            previewResult.sphere_r,
+            previewResult.sphere_g,
+            previewResult.sphere_b,
             validatedConfig.bgColor1.r,
             validatedConfig.bgColor1.g,
             validatedConfig.bgColor1.b,
@@ -171,9 +286,9 @@ export const useAestheticMint = () => {
         console.log('✅ Transaction submitted:', txHash);
         setTxHash(txHash);
 
-        // Wait for transaction confirmation
+        // Wait for confirmation
         setState('confirming');
-        console.log('⏳ Waiting for transaction confirmation...');
+        console.log('⏳ Waiting for confirmation...');
 
         const receipt = await publicClient.waitForTransactionReceipt({
           hash: txHash,
@@ -185,11 +300,11 @@ export const useAestheticMint = () => {
         }
 
         console.log('✓ Transaction confirmed');
+        console.log(`  Gas used: ${receipt.gasUsed.toString()}`);
 
-        // Extract token ID logic
+        // Get token ID
         let tokenId = '0';
         try {
-          // Fallback logic: use block number or tx hash if event parsing isn't set up
           tokenId = receipt.blockNumber.toString();
         } catch {
           tokenId = txHash;
@@ -197,19 +312,18 @@ export const useAestheticMint = () => {
 
         console.log('🎁 Token ID:', tokenId);
 
-        // Render the token image
+        // Render token
         setState('confirmed');
         const imageUrl = await renderToken(BigInt(tokenId));
 
-        // Build result
         const finalResult: MintingResult = {
           tokenId,
           txHash,
           imageUrl,
           imageInfo: {
-            width: 32, 
+            width: 32,
             height: 32,
-            fileSize: 3072 + 54, 
+            fileSize: 3072 + 54,
           },
         };
 
@@ -218,14 +332,7 @@ export const useAestheticMint = () => {
 
         return txHash;
       } catch (err) {
-        const errorMessage = err && typeof err === 'object' && 'message' in err ? (err as Error).message : String(err);
-        
-        // Debugging hint for Gas Fee errors
-        if (errorMessage.includes("gas") || errorMessage.includes("fee")) {
-            console.error("⚠️ GAS ESTIMATION FAILED. Likely caused by Contract Revert/Panic.");
-            console.error("Check ABI arguments match the Rust contract exactly.");
-        }
-
+        const errorMessage = err instanceof Error ? err.message : String(err);
         console.error('❌ Minting error:', errorMessage);
         setError(errorMessage);
         setState('failed');
@@ -236,7 +343,7 @@ export const useAestheticMint = () => {
   );
 
   /**
-   * Renders a token image after minting
+   * Renders token image
    */
   const renderToken = useCallback(
     async (tokenId: bigint | string): Promise<string> => {
@@ -250,7 +357,7 @@ export const useAestheticMint = () => {
         const bmpBytes = await publicClient.readContract({
           address: RAYSTYLUS_ADDRESS as `0x${string}`,
           abi: RAYSTYLUS_ABI,
-          functionName: 'render_token',
+          functionName: 'renderToken',
           args: [BigInt(tokenId)],
         });
 
@@ -286,22 +393,25 @@ export const useAestheticMint = () => {
     setError(null);
     setResult(null);
     setTxHash(null);
+    setPreview(null);
   }, []);
 
   return {
     state,
     error,
     result,
+    preview,
     txHash,
     isLoading: isWritePending,
-    mint,
+    previewAesthetic,  // NEW: Preview colors (free view function)
+    mint,              // Mint token (state function, pays gas)
     renderToken,
     reset,
   };
 };
 
 /**
- * Utility hook for managing multiple aesthetic parameters
+ * Hook for managing aesthetic parameters
  */
 export const useAestheticParams = (initialConfig?: Partial<AestheticMintConfig>) => {
   const defaultConfig: AestheticMintConfig = {
