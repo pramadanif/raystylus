@@ -1,0 +1,37 @@
+--- 1. Generating 1000 Synthetic Data Samples ---
+Training data shape: (800, 3)
+
+--- 2. Training Mini Neural Network (1 Hidden Layer) ---
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/core/dense.py:93: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+Model trained successfully. Test Loss (MSE): 0.0112
+
+--- 3. Extracting All Weights and Biases ---
+Weights 1 (Input->Hidden, Shape (3, 4)):
+[[ 0.567939   -1.0279073   0.68790674]
+ [-0.519757   -0.29721516  0.567038  ]
+ [-1.382448    0.64788634  0.01610561]
+ [-0.3791778  -0.505058    0.15522334]]
+Biases 1 (Hidden, Shape (4,)):
+[ 0.6408665   0.4137791   0.7223361  -0.08345032]
+Weights 2 (Hidden->Output, Shape (4, 2)):
+[[ 0.26230234 -0.58159995 -1.1181185   0.60478413]
+ [-1.5098825  -0.7352491   0.9827771  -0.3491817 ]]
+Biases 2 (Output, Shape (2,)):
+[-0.17807542 -0.3502738 ]
+
+=======================================================
+=== FINAL RUST IMPLEMENTATION DATA (i64 Fixed-Point) ===
+=======================================================
+
+// W_1 Matrix (INPUT -> HIDDEN): Shape (4, 3)
+const W1: [[i64; 3]; 4] = [[567938987432345600, -1027907238687145984, 687906701138984960], [-519756979153928192, -297215172857036800, 567038006372859904], [-1382447992878923776, 647886333313810432, 16105605521473536], [-379177786113261568, -505057986159312896, 155223330712977408]];
+
+// B_1 Vector (HIDDEN LAYER BIASES): Shape (4)
+const B1: [i64; 4] = [640866501326274560, 413779107801726976, 722336121056395264, -83450321208082432];
+
+// W_2 Matrix (HIDDEN -> OUTPUT): Shape (2, 4)
+const W2: [[i64; 4]; 2] = [[262302328600657920, -581599938371125248, -1118118525613899776, 604784103115456512], [-1509882490049789952, -735249060490903552, 982777096730312704, -349181700158259200]];
+
+// B_2 Vector (OUTPUT LAYER BIASES): Shape (2)
+const B2: [i64; 2] = [-178075408585981952, -350273790082547712];

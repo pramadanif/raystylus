@@ -1,0 +1,7 @@
+deployed code at address: 0xe7aa32717080ce0ab3bd51e1fbdb0c15796eee1a
+deployment tx hash: 0x294d2c002c445683ee68c669c1d2d8cf10b96ad2367ef993cee0aef5f5f9376d
+contract activated and ready onchain with tx hash: 0x39e4bdd2ecc29604cadfcbd03f640c810a2a30590a04f82b43de505641653241
+
+NOTE: We recommend running cargo stylus cache bid e7aa32717080ce0ab3bd51e1fbdb0c15796eee1a 0 to cache your activated contract in ArbOS.
+Cached contracts benefit from cheaper calls. To read more about the Stylus contract cache, see
+https://docs.arbitrum.io/stylus/how-tos/caching-contracts
