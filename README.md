@@ -67,6 +67,7 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 - ✅ **Mobile Ready**: Responsive design for all devices
 - ✅ **Gradient Background**: Smooth interpolation between two colors
 - ✅ **AI Integration**: Natural language chat to control scene parameters, powered by OpenRouter and GPT-4.1. Seamlessly integrates AI and WASM raytracing on Arbitrum Stylus blockchain.
+- ✅ **🧠 Mini Neural Network (MNN)**: On-chain ML inference (3→4→2 architecture) for aesthetic color generation. Trained neural network deployed as immutable smart contract code. First-ever trustless AI inference on blockchain.
 
 ### 🌐 Deployment Details
 
@@ -633,6 +634,147 @@ View the contract on Arbiscan:
 
 
 ## 💡 Technical Deep Dive
+
+### 🧠 Mini Neural Network (MNN) - AI on Blockchain
+
+RayStylus features the **first-ever neural network deployed directly on a smart contract**. The MNN enables AI-driven aesthetic color generation with **zero off-chain dependencies**.
+
+#### Architecture
+
+```
+INPUT LAYER (3 neurons)
+├─ Warmth    (0.0 to 1.0)
+├─ Intensity (0.0 to 1.0)
+└─ Depth     (0.0 to 1.0)
+        ↓
+HIDDEN LAYER (4 neurons with ReLU activation)
+        ↓
+OUTPUT LAYER (2 neurons with Sigmoid activation)
+├─ Sphere Color R (0-255)
+└─ Sphere Color G (0-255)
+```
+
+#### Training & Deployment Process
+
+**1. Off-Chain Training (Python + TensorFlow)**
+```python
+# 1000 synthetic samples
+X = [warmth, intensity, depth]  # Input
+Y = [sphere_r, sphere_g]         # Output
+
+# Trained using Adam optimizer, MSE loss
+# Test MSE: 0.0112 (highly accurate)
+```
+
+**Trained Weights & Biases:**
+- Layer 1: 3×4 weight matrix + 4 biases
+- Layer 2: 4×2 weight matrix + 2 biases
+- Total: 28 weights + 6 biases
+
+**2. Fixed-Point Conversion**
+```
+Scale: 10^18 (Rust i64)
+Example: 0.567939 → 567938987432345600 (i64)
+```
+
+**3. On-Chain Deployment**
+```rust
+const W1: [[i64; 3]; 4] = [
+    [567938987432345600, -1027907238687145984, 687906701138984960],
+    [-519756979153928192, -297215172857036800, 567038006372859904],
+    [-1382447992878923776, 647886333313810432, 16105605521473536],
+    [-379177786113261568, -505057986159312896, 155223330712977408]
+];
+
+const B1: [i64; 4] = [
+    640866501326274560, 413779107801726976, 
+    722336121056395264, -83450321208082432
+];
+
+// Same for Layer 2 (W2, B2)
+```
+
+#### Why This Matters
+
+| Aspect | Traditional ML | RayStylus MNN |
+|--------|---|---|
+| **Centralization** | Server-controlled | Blockchain immutable |
+| **Trust** | Trust the API provider | Trust the code/math |
+| **Auditability** | Black box | Public, verifiable weights |
+| **Cost** | API fees per inference | Gas cost (included in minting) |
+| **Availability** | Server dependent | Blockchain redundancy |
+| **Inference Speed** | Fast (optimized hardware) | Deterministic (same result always) |
+
+#### Implementation Details
+
+**VIEW Function: `view_aesthetic(warmth, intensity, depth) → (r, g, b)`**
+- **Gas Cost**: FREE (view function)
+- **Execution**: ~50μs on Stylus VM
+- **Output**: RGB values deterministically computed from inputs
+
+```rust
+pub fn view_aesthetic(
+    &self,
+    style_warmth_u256: U256,
+    style_intensity_u256: U256,
+    style_depth_u256: U256,
+) -> (u8, u8, u8) {
+    // 1. Convert U256 to i64 fixed-point
+    let [w, i, d] = [warmth_i64, intensity_i64, depth_i64];
+    
+    // 2. Layer 1: Matrix multiply + ReLU
+    let hidden = layer1_inference([w, i, d]);
+    
+    // 3. Layer 2: Matrix multiply + Sigmoid
+    let output = layer2_inference(hidden);
+    
+    // 4. Convert i64 fixed-point to u8 RGB
+    (output[0] as u8, output[1] as u8)
+}
+```
+
+#### Activation Functions
+
+**ReLU (Rectified Linear Unit)**
+```rust
+fn relu(x: i64) -> i64 {
+    if x > 0 { x } else { 0 }
+}
+```
+
+**Sigmoid Approximation** (linear approximation for fixed-point)
+```rust
+fn sigmoid_approx(x: i64) -> i64 {
+    // Bounds check to prevent overflow
+    if x >= 3 * ML_SCALE { return ML_SCALE; }
+    if x <= -3 * ML_SCALE { return 0; }
+    
+    // Linear approximation: 0.5 + 0.166 * x / SCALE
+    HALF_SCALE + (x / 6)
+}
+```
+
+#### Aesthetic NFT Workflow
+
+```
+User Input (UI)
+├─ Warmth slider    (0-100%)
+├─ Intensity slider (0-100%)
+└─ Depth slider     (0-100%)
+        ↓
+FREE PREVIEW
+├─ Call view_aesthetic()  [FREE - VIEW function]
+├─ Get predicted RGB colors [instantly]
+└─ Render sphere with colors [client-side canvas]
+        ↓
+MINT NFT
+├─ Transaction: mint(r, g, b, ...) [pays gas]
+├─ Store params on-chain
+├─ Get token ID
+└─ Render full raytraced image [on-demand via render_token()]
+```
+
+---
 
 ### Fixed-Point Arithmetic (Scale 1024)
 

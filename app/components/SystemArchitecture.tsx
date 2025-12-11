@@ -179,7 +179,7 @@ export const SystemArchitecture: React.FC = () => {
                 }`}>
                     <h2 className="text-3xl md:text-4xl font-bold text-ray-cream mb-4">System Architecture</h2>
                     <p className="text-gray-400 max-w-2xl mx-auto">
-                        <span className="text-purple-400 font-semibold">RayTracing + Neural Network</span> on-chain using <span className="text-[#8BAE66] font-semibold">Arbitrum Stylus</span>. 
+                        <span className="text-ray-light font-semibold">RayTracing + Neural Network</span> on-chain using <span className="text-ray-light font-semibold">Arbitrum Stylus</span>. 
                         GPU-like computation with ML inference on blockchain.
                     </p>
                 </div>

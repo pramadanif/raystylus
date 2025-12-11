@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useAccount, useChainId } from 'wagmi';
-import { useAestheticMint, useAestheticParams } from '@/app/hooks/useAestheticMint';
+import { useAestheticMint, useAestheticParams } from '@/app/hooks/useAesthetic';
 import { ConnectButtonWrapper } from '@/app/components/ConnectButtonWrapper';
 import { AIChat } from '@/app/components/AIChat';
 import { RaccoonLogo } from '@/app/components/Logo';
@@ -80,6 +80,11 @@ export default function AestheticPage() {
   const [displayedImage, setDisplayedImage] = useState<string | null>(null);
   const [previewColors, setPreviewColors] = useState<{sphere_r: number; sphere_g: number; sphere_b: number} | null>(null);
 
+  // State for derived values
+  const isPreviewing = minting.state === 'previewing';
+  const isMinting = minting.state === 'pending' || minting.state === 'confirming';
+  const isMinted = minting.state === 'confirmed' && displayedImage;
+
   // Render sphere preview when preview colors change
   useEffect(() => {
     if (previewColors && canvasRef.current) {
@@ -90,14 +95,14 @@ export default function AestheticPage() {
           b: previewColors.sphere_b,
         },
         bgColor1: {
-          r: Math.round(15 * 2.55),
-          g: Math.round(18 * 2.55),
-          b: Math.round(14 * 2.55),
+          r: 27,  // #1B
+          g: 33,  // #21
+          b: 26,  // #1A
         },
         bgColor2: {
-          r: Math.round(91 * 2.55 / 10),
-          g: Math.round(127 * 2.55 / 10),
-          b: Math.round(213 * 2.55 / 10),
+          r: 91,  // #5B
+          g: 127, // #7F
+          b: 213, // #D5
         },
         width: 512,
         height: 512,
@@ -105,33 +110,64 @@ export default function AestheticPage() {
     }
   }, [previewColors]);
 
-  // Handle preview aesthetic (VIEW function - FREE!)
-  const handlePreview = async () => {
-    try {
-      const preview = await minting.previewAesthetic(params.config);
-      if (preview) {
-        setPreviewColors(preview);
-      }
-    } catch (err) {
-      console.error('Preview error:', err);
+  // Initial preview on mount (if previewColors is null and wallet connected)
+  useEffect(() => {
+    if (!previewColors && isConnected) {
+      (async () => {
+        try {
+          const preview = await minting.previewAesthetic(params.config);
+          if (preview) {
+            setPreviewColors(preview);
+          }
+        } catch (err) {
+          console.error('Initial preview error:', err);
+        }
+      })();
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
+
+  // Auto-preview with debounce (SAME LOGIC AS STUDIO - 300ms)
+  // Only trigger when config changes, not on every render
+  useEffect(() => {
+    if (!previewColors) return; // skip if initial preview not done
+    const timer = setTimeout(async () => {
+      if (isConnected && !isMinting && !isMinted) {
+        try {
+          const preview = await minting.previewAesthetic(params.config);
+          if (preview) {
+            setPreviewColors(preview);
+          }
+        } catch (err) {
+          console.error('Preview error:', err);
+        }
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [params.config.warmth, params.config.intensity, params.config.depth]);
 
   // Handle mint (STATE function - PAYS GAS)
+  // SAME LOGIC AS STUDIO: Call minting.mint with full config
   const handleMint = async () => {
     if (!previewColors) {
       alert('Preview colors first!');
       return;
     }
 
+    if (!isConnected) {
+      alert('Please connect wallet first!');
+      return;
+    }
+
     try {
       const config = {
         ...params.config,
-        bgColor1: { r: 0.1, g: 0.1, b: 0.15 },
-        bgColor2: { r: 0.05, g: 0.05, b: 0.1 },
-        camera: { x: 0, y: 0, z: 2.5 },
+        bgColor1: { r: 27, g: 33, b: 26 },
+        bgColor2: { r: 91, g: 127, b: 213 },
+        camera: { x: 0, y: 0, z: 0 },
       };
 
+      // CALL SAME MINT FUNCTION AS STUDIO
       const txHash = await minting.mint(config, previewColors as any);
 
       if (txHash && minting.result?.imageUrl) {
@@ -157,23 +193,12 @@ export default function AestheticPage() {
     if (aiConfig.intensity !== undefined) newConfig.intensity = aiConfig.intensity;
     if (aiConfig.depth !== undefined) newConfig.depth = aiConfig.depth;
     
-    // Update all parameters
+    // Update all parameters (which will trigger auto-preview via useEffect)
     params.updateWarmth(newConfig.warmth);
     params.updateIntensity(newConfig.intensity);
     params.updateDepth(newConfig.depth);
-    
-    // Auto-preview after update
-    setTimeout(() => {
-      minting.previewAesthetic(newConfig).then(preview => {
-        if (preview) setPreviewColors(preview);
-      });
-    }, 300);
   };
 
-  const isPreviewing = minting.state === 'previewing';
-  const isMinting = minting.state === 'pending' || minting.state === 'confirming';
-  const isMinted = minting.state === 'confirmed' && displayedImage;
-  const canPreview = isConnected && !isPreviewing && !isMinting && !isMinted;
   const canMint = isConnected && previewColors && !isMinting && !isMinted;
 
   return (
@@ -353,34 +378,6 @@ export default function AestheticPage() {
 
             {/* Action Buttons */}
             <div className="space-y-2">
-              {/* Preview Button */}
-              <button
-                onClick={handlePreview}
-                disabled={!canPreview}
-                className={`w-full py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 border ${
-                  canPreview
-                    ? 'bg-[#4adc80]/10 border-[#4adc80]/50 text-[#4adc80] hover:bg-[#4adc80]/20 hover:shadow-[0_0_15px_rgba(74,222,128,0.3)]'
-                    : 'bg-gray-800 border-transparent text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {isPreviewing ? (
-                  <>
-                    <div className="w-3 h-3 border-2 border-t-transparent border-current rounded-full animate-spin" />
-                    Inferencing...
-                  </>
-                ) : previewColors ? (
-                  <>
-                    <Eye size={14} />
-                    Preview Ready ✓
-                  </>
-                ) : (
-                  <>
-                    <Eye size={14} />
-                    Preview Colors (FREE)
-                  </>
-                )}
-              </button>
-
               {/* Mint Button */}
               <button
                 onClick={handleMint}
