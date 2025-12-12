@@ -495,7 +495,7 @@ export default function AestheticPage() {
 
         {/* Right Sidebar - AI Chat Panel */}
         <div className="w-72 flex-shrink-0 h-full flex flex-col">
-          <AIChat onConfigReceived={handleConfigFromAI} />
+          <AIChat onConfigReceived={handleConfigFromAI} mode="aesthetic" />
         </div>
       </main>
     </div>

@@ -31,10 +31,18 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 };
 
 export const AIChat = ({ 
-    onConfigReceived 
+    onConfigReceived,
+    mode = 'studio'
 }: { 
-    onConfigReceived?: (config: any) => void 
+    onConfigReceived?: (config: any) => void;
+    mode?: 'studio' | 'aesthetic';
 }) => {
+    // Define valid keys untuk masing-masing mode
+    const validKeysMap = {
+        studio: ['sphereColor', 'bgColor1', 'bgColor2', 'cameraX', 'cameraY', 'cameraZ'],
+        aesthetic: ['warmth', 'intensity', 'depth']
+    };
+    const validKeys = validKeysMap[mode as keyof typeof validKeysMap] || validKeysMap.studio;
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -49,12 +57,20 @@ export const AIChat = ({
         scrollToBottom();
     }, [messages]);
 
-    // 2. LOGIC: Parsing response yang lebih aman (menggunakan replace bukan slice)
+    // 2. LOGIC: Parsing response yang lebih aman dengan JSON extraction
     const parseAIResponse = (response: string) => {
         const cleanText = response.trim();
         if (cleanText.startsWith('[CONFIG]')) {
             // Hapus tag dan bersihkan whitespace
-            return { type: 'config' as const, content: cleanText.replace('[CONFIG]', '').trim() };
+            let jsonContent = cleanText.replace('[CONFIG]', '').trim();
+            
+            // Extract JSON dari response (robust extraction)
+            const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                jsonContent = jsonMatch[0];
+            }
+            
+            return { type: 'config' as const, content: jsonContent };
         } else if (cleanText.startsWith('[CHAT]')) {
             return { type: 'chat' as const, content: cleanText.replace('[CHAT]', '').trim() };
         }
@@ -85,7 +101,7 @@ export const AIChat = ({
         setIsLoading(true);
 
         try {
-            // 4. API CALL: Mengirim array 'messages' (bukan cuma 'userMessage')
+            // 4. API CALL: Mengirim array 'messages' (bukan cuma 'userMessage') + mode
             const response = await fetch('/api/ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -93,7 +109,8 @@ export const AIChat = ({
                     messages: updatedHistory.map(m => ({
                         role: m.role,
                         content: m.content
-                    })) 
+                    })),
+                    mode: mode
                 }),
             });
 
@@ -119,16 +136,42 @@ export const AIChat = ({
             // Eksekusi Config jika ada
             if (parsed.type === 'config') {
                 try {
-                    // Bersihkan JSON dari potensi markdown code block (```json ... ```)
-                    const cleanJson = parsed.content.replace(/```json/g, '').replace(/```/g, '');
-                    const config = JSON.parse(cleanJson);
+                    // Parse JSON dengan handling error yang lebih baik
+                    let config;
+                    try {
+                        config = JSON.parse(parsed.content);
+                    } catch (e) {
+                        // Coba extract JSON sekali lagi jika gagal
+                        const jsonMatch = parsed.content.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            config = JSON.parse(jsonMatch[0]);
+                        } else {
+                            throw e;
+                        }
+                    }
+                    
+                    // Filter out invalid keys berdasarkan mode
+                    const filteredConfig: any = {};
+                    for (const key of validKeys) {
+                        if (key in config) {
+                            filteredConfig[key] = config[key];
+                        }
+                    }
+                    
+                    // Pastikan ada minimal 1 key yang valid
+                    if (Object.keys(filteredConfig).length === 0) {
+                        const invalidKeys = Object.keys(config);
+                        setError(`Invalid config keys for ${mode} mode. Expected: ${validKeys.join(', ')}. Got: ${invalidKeys.join(', ')}`);
+                        console.error('Invalid config keys:', { mode, expected: validKeys, received: invalidKeys });
+                        return;
+                    }
                     
                     if (onConfigReceived) {
-                        onConfigReceived(config);
+                        onConfigReceived(filteredConfig);
                     }
                 } catch (parseError) {
-                    setError('Failed to parse configuration JSON');
-                    console.error('Config parse error:', parseError);
+                    setError(`Failed to parse configuration: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+                    console.error('Config parse error:', parseError, 'Content:', parsed.content);
                 }
             }
         } catch (err) {

@@ -74,10 +74,10 @@ RayStylus demonstrates the power of **Arbitrum Stylus** by implementing a comple
 **Network:** Arbitrum Sepolia (Chain ID: 421614)
 | Property | Value |
 |----------|-------|
-| **Contract Address** | `0x762fa193c75b246efaf274e7a48f71357960ccd8` |
-| **TX Hash** | `0xded042c4c47fcb0842fdc486e9bafed8e902cad731b6ba8e35aa4f9e273e6ace` |
+| **Contract Address** | `0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757` |
+| **TX Hash** | `0x5743ade3433f2ea1c6ae93679ce5210593af81353171775aba2c0f31444817f9` |
 | **Status** | ✅ Active and Ready On-Chain |
-| **Block Explorer** | [Arbiscan](https://sepolia.arbiscan.io/address/0x762fa193c75b246efaf274e7a48f71357960ccd8)
+| **Block Explorer** | [Arbiscan](https://sepolia.arbiscan.io/address/0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757)
 
 ---
 
