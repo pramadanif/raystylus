@@ -189,17 +189,60 @@ graph LR
 
 ### Overview
 
-The RayStylus smart contract is a sophisticated ray tracing engine written in Rust and deployed as a WebAssembly (WASM) contract on Arbitrum Stylus. It provides three main functions:
+The RayStylus smart contract is a sophisticated ray tracing engine written in Rust and deployed as a WebAssembly (WASM) contract on Arbitrum Stylus. It provides four main functions:
 
-1. **`mint()`** - Create NFTs with rendering parameters (new!)
-2. **`render_token()`** - On-demand rendering from stored parameters
-3. **`owner_of()`** - Query token ownership
+1. **`view_aesthetic(warmth, intensity, depth)`** - AI-powered color generation (FREE view function)
+2. **`mint()`** - Create NFTs with rendering parameters
+3. **`render_token(token_id)`** - On-demand rendering from stored parameters
+4. **`owner_of(token_id)`** - Query token ownership
 
-This **two-phase design** separates minting (cheap, parameters only) from rendering (expensive, on-demand).
+This **multi-phase design** separates: preview (free AI inference) → minting (cheap, parameters only) → rendering (expensive, on-demand).
 
 ---
 
 ### Contract Functions
+
+#### 0️⃣ **`view_aesthetic(warmth, intensity, depth) → (r, g, b)`**
+
+**Purpose:** AI-powered preview of aesthetic colors using on-chain neural network (FREE!)
+
+**Parameters:**
+| Parameter | Type | Range | Description |
+|-----------|------|-------|-------------|
+| `warmth` | `U256` | 0 to 10^18 | Warmth style factor (0.0 to 1.0) |
+| `intensity` | `U256` | 0 to 10^18 | Intensity style factor (0.0 to 1.0) |
+| `depth` | `U256` | 0 to 10^18 | Depth style factor (0.0 to 1.0) |
+
+**Returns:** `(u8, u8, u8)` - RGB color tuple (0-255 each)
+
+**Gas Cost:** FREE (view function, no state changes)
+
+**Behavior:**
+- Runs 2-layer neural network (3→4→2 architecture) trained on 1000 synthetic samples
+- Input: 3 style dimensions (warmth, intensity, depth normalized to 0.0-1.0)
+- Hidden layer: 4 neurons with ReLU activation
+- Output layer: 2 neurons with sigmoid activation
+- Returns predicted sphere RGB colors instantly
+- Deterministic: same inputs always produce identical outputs
+- **Perfect for**: Live preview before minting!
+
+**Frontend Example:**
+```typescript
+// Preview colors before minting (no gas cost!)
+const [r, g, b] = await publicClient.readContract({
+  address: contractAddress,
+  abi: RAYSTYLUS_ABI,
+  functionName: 'view_aesthetic',
+  args: [
+    BigInt(1e18) * BigInt(75) / BigInt(100),   // Warmth: 0.75
+    BigInt(1e18) * BigInt(60) / BigInt(100),   // Intensity: 0.60
+    BigInt(1e18) * BigInt(50) / BigInt(100)    // Depth: 0.50
+  ]
+});
+console.log(`Predicted colors: RGB(${r}, ${g}, ${b})`);
+```
+
+---
 
 #### 1️⃣ **`mint(sphere_r, sphere_g, sphere_b, bg_color1_r, bg_color1_g, bg_color1_b, bg_color2_r, bg_color2_g, bg_color2_b, cam_x, cam_y, cam_z) → U256`**
 
@@ -316,7 +359,20 @@ pub struct Contract {
 **Using wagmi/viem (Frontend):**
 
 ```typescript
-// Mint NFT
+// Preview aesthetic colors (FREE - VIEW function)
+const [r, g, b] = await publicClient.readContract({
+  address: contractAddress,
+  abi: RAYSTYLUS_ABI,
+  functionName: 'view_aesthetic',
+  args: [
+    BigInt(1e18) * BigInt(75) / BigInt(100),   // Warmth: 0.75
+    BigInt(1e18) * BigInt(60) / BigInt(100),   // Intensity: 0.60
+    BigInt(1e18) * BigInt(50) / BigInt(100)    // Depth: 0.50
+  ]
+});
+// Returns: [r_value, g_value, b_value] - no gas cost!
+
+// Mint NFT with rendering parameters
 const txHash = await writeContractAsync({
   address: contractAddress,
   abi: RAYSTYLUS_ABI,
@@ -328,22 +384,25 @@ const txHash = await writeContractAsync({
     0, 0, 0         // Camera: center
   ]
 });
+// Returns: token_id
 
-// Render a token (public, anyone can call)
-const pixels = await publicClient.readContract({
+// Render a stored token (on-demand, anyone can call)
+const bmpData = await publicClient.readContract({
   address: contractAddress,
   abi: RAYSTYLUS_ABI,
   functionName: 'render_token',
   args: [BigInt(0)] // Token ID 0
 });
+// Returns: 3,126 bytes (BMP file format)
 
-// Check ownership
+// Check token ownership
 const owner = await publicClient.readContract({
   address: contractAddress,
   abi: RAYSTYLUS_ABI,
   functionName: 'owner_of',
-  args: [BigInt(0)]
+  args: [BigInt(0)] // Token ID 0
 });
+// Returns: Address of token owner
 ```
 
 ---
@@ -351,9 +410,9 @@ const owner = await publicClient.readContract({
 ### Contract Verification
 
 View the contract on Arbiscan:
-- **Address:** [0x762fa193c75b246efaf274e7a48f71357960ccd8](https://sepolia.arbiscan.io/address/0x762fa193c75b246efaf274e7a48f71357960ccd8)
-- **Deployment TX:** [0xded042c4c47fcb0842fdc486e9bafed8e902cad731b6ba8e35aa4f9e273e6ace](https://sepolia.arbiscan.io/tx/0xded042c4c47fcb0842fdc486e9bafed8e902cad731b6ba8e35aa4f9e273e6ace)
-- **Status:** ✅ Active and Ready
+- **Address:** [0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757](https://sepolia.arbiscan.io/address/0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757)
+- **Deployment TX:** [0x5743ade3433f2ea1c6ae93679ce5210593af81353171775aba2c0f31444817f9](https://sepolia.arbiscan.io/tx/0x5743ade3433f2ea1c6ae93679ce5210593af81353171775aba2c0f31444817f9)
+- **Status:** ✅ Active and Ready On-Chain
 
 ---
 
@@ -605,7 +664,7 @@ const client = createPublicClient({
 });
 
 const result = await client.readContract({
-  address: '0x36b922c9056c7a2f16c539c0066c5e472455a12c',
+  address: '0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757',
   abi: RAYSTYLUS_ABI,
   functionName: 'renderScene',
   args: [
@@ -622,14 +681,6 @@ const result = await client.readContract({
 const rgbBytes = result; // Hex string or bytes array
 ```
 
-### Contract Verification
-
-View the contract on Arbiscan:
-- **Address:** [0x36b922c9056c7a2f16c539c0066c5e472455a12c](https://sepolia.arbiscan.io/address/0x36b922c9056c7a2f16c539c0066c5e472455a12c)
-- **Deployment TX:** [0x46eaf090ad...](https://sepolia.arbiscan.io/tx/0x46eaf090ad2250d068fb2e5b153bc768d01dd8082a94cc6efb0a4648372b0d69)
-- **Activation TX:** [0x8a4781ef...](https://sepolia.arbiscan.io/tx/0x8a4781ef335132c3e8f408153f9d16bfcade9c55d59996bc6b1dc1cccb9b32b0)
-
----
 
 
 
@@ -1388,7 +1439,7 @@ export const RAYSTYLUS_ABI = [
 ] as const;
 
 export const RAYSTYLUS_CONTRACT_ADDRESS = 
-    '0x36b922c9056c7a2f16c539c0066c5e472455a12c' as const;
+    '0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757' as const;
 ```
 
 ---
@@ -1464,7 +1515,7 @@ t = (-b - √Δ) / (2a)
 **Solutions:**
 1. Verify contract address is correct (case-sensitive):
    ```
-   0x36b922c9056c7a2f16c539c0066c5e472455a12c
+   0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757
    ```
 2. Check RPC endpoint is working:
    ```bash
