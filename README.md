@@ -9,21 +9,15 @@
 
 ### The Story
 
-RayStylus is a high-performance on-chain graphics and computation experiment built for the Arbitrum Stylus ecosystem, designed to demonstrate what becomes possible when smart contracts are no longer constrained by traditional EVM limitations.
+💬 **The Hook:** Everyone thinks blockchain is just for DeFi. *We disagree.*
 
-Instead of another DeFi primitive, RayStylus explores a domain that is traditionally impossible on-chain: real-time 3D ray tracing combined with adaptive neural rendering, executed fully inside a Stylus (Rust → WASM) smart contract.
+⚡ **The Flex:** Introducing RayStylus — the first Ray Tracing Engine powered by Arbitrum Stylus.
 
-At its core, RayStylus renders a deterministic 32×32 ray-traced sphere scene directly on-chain, using mathematically precise ray–sphere intersection logic. To push beyond static rendering, the contract embeds a mini neural network that dynamically adjusts depth intensity and color blending — proving that Stylus can handle non-linear, adaptive computation in a trustless environment.
+🔬 **The Stylus Advantage:** This is impossible on Ethereum. But thanks to **Stylus & Rust**, we can compute complex vectors and render pixels on-chain.
 
-User interaction is powered by an OpenAI-integrated configuration layer. Users express intent in natural language (e.g., "make it deeper", "shift toward cooler colors"). This intent is processed off-chain via OpenAI and translated into strict, deterministic numerical parameters, which are then executed on-chain by the Stylus contract. No AI inference occurs on-chain — ensuring reproducibility, safety, and full determinism.
+🤖 **The AI Magic:** And we made it accessible to everyone. No coding needed—just talk to our AI Agent.
 
-The frontend is built with Next.js and TypeScript, delivering a zero-lag, interactive UI that instantly visualizes the on-chain output.
-
-RayStylus is intentionally positioned as a technical showcase and reference architecture, answering a single research-driven question:
-
-How far can Stylus push on-chain computation beyond finance?
-
-All ray tracing and neural computation occurs fully on-chain inside the Stylus smart contract; off-chain components are strictly limited to intent translation and never influence execution results.
+**The Vision:** RayStylus demonstrates that Stylus unlocks computation domains previously impossible in blockchain. We render 3D ray-traced spheres with on-chain neural networks — all deterministic, all verifiable, all trustless.
 
 **The First Fully On-Chain Ray Tracer Built with Rust & Arbitrum Stylus**
 
@@ -259,6 +253,69 @@ sequenceDiagram
     Output-->>User: Display Ray-Traced Image
 ```
 
+### System Architecture - Submission Ready (Hackquest)
+
+```mermaid
+graph LR
+    subgraph User["👤 User"]
+        A["Set Parameters<br/>Warmth/Intensity/Depth"]
+    end
+    
+    subgraph Frontend["🎨 Frontend<br/>Next.js"]
+        B["View Aesthetic<br/>(MNN Preview)"]
+        C["Render Token<br/>(Ray Tracer)"]
+    end
+    
+    subgraph Web3Layer["🔗 Web3 Layer"]
+        D["Arbitrum Sepolia RPC<br/>sepolia-rollup.arbitrum.io"]
+    end
+    
+    subgraph SmartContract["⚙️ Smart Contract<br/>Arbitrum Stylus"]
+        E["view_aesthetic<br/>MNN Inference"]
+        F["render_token<br/>Ray Tracing"]
+    end
+    
+    subgraph Rendering["🔴 On-Chain Computation"]
+        G["32×32 Pixel Loop"]
+        H["Ray-Sphere Intersection"]
+        I["Diffuse Lighting"]
+        J["RGB Output"]
+    end
+    
+    subgraph Result["📊 Result"]
+        K["3,126 bytes<br/>BMP Image"]
+        L["Canvas Display"]
+    end
+    
+    A --> B
+    B --> D
+    D --> E
+    E --> L
+    
+    A --> C
+    C --> D
+    D --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    
+    style User fill:#EBD5AB,stroke:#628141,color:#1B211A
+    style Frontend fill:#4A6741,stroke:#8BAE66,color:#fff
+    style Web3Layer fill:#2D3A2D,stroke:#8BAE66,color:#EBD5AB
+    style SmartContract fill:#628141,stroke:#8BAE66,color:#fff
+    style Rendering fill:#628141,stroke:#8BAE66,color:#fff
+    style Result fill:#EBD5AB,stroke:#628141,color:#1B211A
+```
+
+**Key Stats:**
+- ✅ MNN Preview: FREE (view function, 0 gas)
+- ✅ Render: ~120K gas (~120ms)
+- ✅ Chain: Arbitrum Sepolia
+- ✅ Contract: `0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757`
+
 ### Frontend Component Architecture
 
 ```mermaid
@@ -276,21 +333,21 @@ graph TB
     end
     
     subgraph Landing_Comps["Landing Components"]
-        Hero["Hero<br/>(Typewriter + Intro)"]
-        Problem["Problem/Solution<br/>(Why Stylus)"]
-        HowIt["How It Works<br/>(3 Steps)"]
-        Bench["Benchmark Table<br/>(Gas Comparison)"]
-        Arch["Architecture Diagram<br/>(Data Flow)"]
-        Demo["Demo CTA<br/>(Call to Action)"]
+        Hero["Hero<br/>(Typewriter)"]
+        Problem["Problem/Solution"]
+        HowIt["How It Works"]
+        Bench["Benchmark Table"]
+        Arch["Architecture"]
+        Demo["Demo CTA"]
         Footer["Footer"]
     end
     
     subgraph Studio_Comps["Studio Components"]
-        Navbar["Navigation<br/>(Connect Wallet)"]
-        UI_Config["Configuration Panel<br/>(Colors, Camera)"]
-        Canvas["Canvas Renderer<br/>(32×32 Display)"]
-        Hooks["useRayStylus<br/>(Contract Logic)"]
-        Aesthetic_Hook["useAesthetic<br/>(MNN Preview)"]
+        Navbar["Navigation<br/>(Connect)"]
+        Config["Configuration<br/>(Colors, Camera)"]
+        Canvas["Canvas<br/>(32×32)"]
+        Hooks["useRayStylus<br/>(Contract)"]
+        AestheticHook["useAesthetic<br/>(MNN)"]
     end
     
     Layout --> Landing
@@ -306,13 +363,13 @@ graph TB
     Landing --> Footer
     
     Studio --> Navbar
-    Studio --> UI_Config
+    Studio --> Config
     Studio --> Canvas
     Studio --> Hooks
-    Studio --> Aesthetic_Hook
+    Studio --> AestheticHook
     
-    Hooks -.->|render_token()| Web3["Web3 Call"]
-    Aesthetic_Hook -.->|view_aesthetic()| Web3
+    Hooks --> Web3["Web3: render_token"]
+    AestheticHook --> Web3
     
     style Root fill:#1B211A,stroke:#EBD5AB,color:#EBD5AB
     style Pages fill:#2D3A2D,stroke:#8BAE66,color:#EBD5AB
