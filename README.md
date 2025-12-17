@@ -9,20 +9,36 @@
 
 ### The Story
 
-💬 **The Hook:** Everyone thinks blockchain is just for DeFi. *We disagree.*
+💬 The Hook
+Most people still think blockchains are only good for DeFi.
+We don’t.
 
-⚡ **The Flex:** Introducing RayStylus — the first Ray Tracing Engine powered by Arbitrum Stylus.
+⚡ The Breakthrough
+Meet RayStylus — the first fully on-chain ray tracing engine built with Arbitrum Stylus (Rust), enhanced with an on-chain mini neural network.
 
-🔬 **The Stylus Advantage:** This is impossible on Ethereum. But thanks to **Stylus & Rust**, we can compute complex vectors and render pixels on-chain.
+🔬 Why Stylus Changes Everything
+This level of computation is impractical on traditional EVM contracts.
+With Stylus + Rust, RayStylus executes heavy vector math, ray–sphere intersections, and pixel shading directly on-chain — deterministically and verifiably.
 
-🤖 **The AI Magic:** And we made it accessible to everyone. No coding needed—just talk to our AI Agent.
+🧠 On-Chain Mini Neural Network
+Beyond classic ray tracing, RayStylus includes a lightweight neural network executed on-chain.
+This neural module dynamically computes depth intensity and color modulation, enabling adaptive shading that goes beyond fixed mathematical formulas — while remaining fully deterministic.
 
-**The Vision:** RayStylus demonstrates that Stylus unlocks computation domains previously impossible in blockchain. We render 3D ray-traced spheres with on-chain neural networks — all deterministic, all verifiable, all trustless.
+🤖 Human-Friendly by Design
+An AI-powered configuration agent (OpenAI integration) translates natural language prompts into deterministic rendering parameters.
+AI never touches execution logic — it only assists configuration.
+All rendering and neural computation happens entirely on-chain.
 
-**The First Fully On-Chain Ray Tracer Built with Rust & Arbitrum Stylus**
+🌐 The Vision
+RayStylus demonstrates that Stylus unlocks computational domains previously impossible on-chain.
+By combining ray tracing + neural inference in a single smart contract, it challenges the assumption that blockchains can only handle financial logic.
 
-Execute ray tracing computations directly on the blockchain with 10-100x lower gas costs than traditional EVM contracts.
+🚀 Why This Matters
+This is not a simulation or off-chain shortcut.
+RayStylus performs real rendering and neural inference on-chain, achieving 10–100× lower gas costs compared to EVM-only approaches.
 
+RayStylus is not a DeFi app.
+It’s a proof-of-compute for Arbitrum Stylus.
 [![Arbitrum Stylus](https://img.shields.io/badge/Arbitrum-Stylus-blue?style=flat-square)](https://arbitrum.io)
 [![Rust](https://img.shields.io/badge/Language-Rust-orange?style=flat-square)](https://www.rust-lang.org/)
 [![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?style=flat-square)](https://nextjs.org)

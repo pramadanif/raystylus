@@ -16,8 +16,12 @@ MAIN RULES:
 3. JSON keys MUST ONLY be one of: "sphereColor", "bgColor1", "bgColor2", "cameraX", "cameraY", "cameraZ".
 4. DO NOT include "resolution" - it is fixed at 32x32.
 5. Color values MUST be in valid HEX string format (example: "#FF4500").
-6. Camera values MUST be integers.
-EXAMPLE OUTPUT: [CONFIG] {"sphereColor": "#FF0000", "cameraZ": -20}
+6. Camera values MUST be integers with these STRICT LIMITS:
+   - cameraX: Range -2 to 2
+   - cameraY: Range -2 to 2
+   - cameraZ: Range 2 to 8 (positive only - must stay visible in canvas)
+7. IMPORTANT: cameraZ must ALWAYS be POSITIVE between 2 and 8. Never use negative values for cameraZ.
+EXAMPLE OUTPUT: [CONFIG] {"sphereColor": "#FF0000", "cameraZ": 5}
 
 MODE 2: NARRATIVE QUESTIONS (Trigger: General questions, non-configuration)
 Task: Answer user questions in an informative, engaging, and interactive way.

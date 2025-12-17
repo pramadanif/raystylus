@@ -361,21 +361,6 @@ export default function AestheticPage() {
               )}
             </div>
 
-            {/* Gas Fee Info */}
-            <div className="bg-white/5 rounded-lg border border-white/10 p-3">
-              <p className="text-[10px] uppercase text-gray-500 font-bold mb-2">Estimated Cost</p>
-              <div className="space-y-1">
-                <p className="text-xs text-gray-300">
-                  <span className="text-gray-500">Preview: </span>
-                  <span className="text-[#4adc80] font-mono">FREE (VIEW)</span>
-                </p>
-                <p className="text-xs text-gray-300">
-                  <span className="text-gray-500">Mint: </span>
-                  <span className="text-[#4adc80] font-mono">$2 - $5 USD</span>
-                </p>
-              </div>
-            </div>
-
             {/* Action Buttons */}
             <div className="space-y-2">
               {/* Mint Button */}
@@ -388,14 +373,6 @@ export default function AestheticPage() {
                     : 'bg-gray-800 border-transparent text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {/* Mini Neural Network Badge */}
-                {canMint && !isMinting && !isMinted && (
-                  <span className="absolute top-0 right-0 inline-flex items-center gap-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-0.5 text-[7px] font-bold uppercase tracking-wider rounded-bl-lg">
-                    <Brain size={10} />
-                    ML
-                  </span>
-                )}
-                
                 {isMinting ? (
                   <>
                     <div className="w-3 h-3 border-2 border-t-transparent border-current rounded-full animate-spin" />

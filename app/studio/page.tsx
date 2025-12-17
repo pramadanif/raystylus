@@ -294,9 +294,9 @@ export default function StudioPage() {
                         <div>
                             <Label icon={Camera}>Camera Position</Label>
                             <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-5">
-                                <RangeSlider label="Offset X" min="-50" max="50" value={config.cameraX} onChange={(e: any) => setConfig({...config, cameraX: Number(e.target.value)})} />
-                                <RangeSlider label="Offset Y" min="-50" max="50" value={config.cameraY} onChange={(e: any) => setConfig({...config, cameraY: Number(e.target.value)})} />
-                                <RangeSlider label="Offset Z" min="-50" max="50" value={config.cameraZ} onChange={(e: any) => setConfig({...config, cameraZ: Number(e.target.value)})} />
+                                <RangeSlider label="Offset X" min="-3" max="3" value={config.cameraX} onChange={(e: any) => setConfig({...config, cameraX: Number(e.target.value)})} />
+                                <RangeSlider label="Offset Y" min="-3" max="3" value={config.cameraY} onChange={(e: any) => setConfig({...config, cameraY: Number(e.target.value)})} />
+                                <RangeSlider label="Offset Z" min="1" max="20" value={config.cameraZ} onChange={(e: any) => setConfig({...config, cameraZ: Number(e.target.value)})} />
                             </div>
                         </div>
                     </div>
