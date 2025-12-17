@@ -1,0 +1,31 @@
+deployed code at address: 0xe7aa32717080ce0ab3bd51e1fbdb0c15796eee1a
+deployment tx hash: 0x294d2c002c445683ee68c669c1d2d8cf10b96ad2367ef993cee0aef5f5f9376d
+contract activated and ready onchain with tx hash: 0x39e4bdd2ecc29604cadfcbd03f640c810a2a30590a04f82b43de505641653241
+
+NOTE: We recommend running cargo stylus cache bid e7aa32717080ce0ab3bd51e1fbdb0c15796eee1a 0 to cache your activated contract in ArbOS.
+Cached contracts benefit from cheaper calls. To read more about the Stylus contract cache, see
+https://docs.arbitrum.io/stylus/how-tos/caching-contracts
+
+deployed code at address: 0xdacedfea4e645c34717cf97aa9e3a622fbd05e0b
+deployment tx hash: 0xa1efb97f115e1b91c8e852920f72d117a7c083a894b2b76be7815226ab6ec1c5
+contract activated and ready onchain with tx hash: 0x093315681e94e01e3354d10bf16728b37e85c207c742487cf91fe3d4452b3983
+
+deployed code at address: 0x05c77a7e85ed7791f4f13ea9156d08c050a3b03e
+deployment tx hash: 0xddafbcc1a35988b1f2b467fd2ff1a78f7d18f4cb5d5f3e55f814b18d9c581af1
+contract activated and ready onchain with tx hash: 0xa617d7ff58a11e7c69de2769e4203b12ec7d1d3cf754b70f19aa4f9a302fe06b
+
+deployed code at address: 0xaa45aaa398d48c08c258e0bcb0dfc2fcc26736e1
+deployment tx hash: 0xd3d3497eddd3355fbe06e607fc1081bc995a1eaee18d5d555fe8aec0d2681355
+contract activated and ready onchain with tx hash: 0xed1a0ab17ff3f29b81def3f9eb21477ec716ab0accf357df2f0dfe8db36afc1c
+
+deployed code at address: 0x0acec16551531e383c63327358a86075a5b1feb2
+deployment tx hash: 0xaf4d94183a02ed87b37f547378e79eab9c4d0c27313303fe1b9d61bdd20e1eb2
+contract activated and ready onchain with tx hash: 0x4fbda3dcec42f2df51b2d6846978d2d042bb540a419933cc5f05d3ff1b5911de
+
+deployed code at address: 0x1d626fd7fd3527bfcf5feb5401079907e4138b99
+deployment tx hash: 0xa9310eabf936328ab0b0e7df8ac19328cf8bdcb79545ad863814f019a5437c43
+contract activated and ready onchain with tx hash: 0x5e030fdf8c264735cd4b6249c6f0b21effd25a03ac715a5e12dec90a5feefa07
+
+deployed code at address: 0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757
+deployment tx hash: 0x5743ade3433f2ea1c6ae93679ce5210593af81353171775aba2c0f31444817f9
+wasm already activated!

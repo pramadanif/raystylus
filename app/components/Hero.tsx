@@ -18,13 +18,15 @@ export const Hero = () => {
     { title: "RAYSTYLUS", subtitle: "ON-CHAIN ENGINE" },
     { title: "RAYTRACING", subtitle: "ON ARBITRUM STYLUS" },
     { title: "INTEGRATED", subtitle: "AI & WASM" },
+    { title: "NEURAL", subtitle: "NETWORK 3→4→2" },
 ];
 
 const subtitles = [
     "Executing complex ray tracing logic on-chain.",
     "High-frequency rendering via Rust smart contracts.",
-    "The world’s first gas-optimized 3D graphics engine.",
-    "Connecting AI-level language with system-level computation."
+    "The world's first gas-optimized 3D graphics engine.",
+    "Connecting AI-level language with system-level computation.",
+    "Mini Neural Network running on Arbitrum Stylus blockchain."
 ];
 
   useEffect(() => {
@@ -191,24 +193,22 @@ const subtitles = [
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.6 }}
             >
-              Experience the first fully on-chain ray tracer built with Rust and WebAssembly. 
-              High-performance graphics computation directly on the Arbitrum blockchain.
+              Experience the first fully on-chain ray tracer with AI-powered aesthetics built with Rust and WebAssembly. 
+              Neural Network inference directly on the Arbitrum blockchain.
             </motion.p>
 
             {/* Blockchain Info */}
             <motion.div
-              className="mb-8 p-4 bg-[#0F1410]/60 border border-[#8BAE66]/30 rounded-lg max-w-lg"
+              className="mb-8 p-4 bg-[#0F1410]/60 border border-[#628141]/30 rounded-lg max-w-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.6 }}
             >
               <p className="text-sm text-gray-300 leading-relaxed">
-                The 3D graphics you create are rendered on the blockchain, not on your PC. 
-                It executes thousands of complex vector mathematical operations 
-                (<span className="text-[#8BAE66] font-semibold">Dot Product</span>, 
+                The 3D graphics you create are rendered on the blockchain using <span className="text-[#8BAE66] font-semibold">Dot Product</span>, 
                 <span className="text-[#8BAE66] font-semibold"> Normalization</span>, 
-                <span className="text-[#8BAE66] font-semibold"> Quadratic Formula</span>) 
-                for every pixel in a single transaction.
+                <span className="text-[#8BAE66] font-semibold"> Quadratic Formula</span> - 
+                <span className="text-[#8BAE66] font-semibold"> powered by on-chain ML</span>.
               </p>
             </motion.div>
 
@@ -225,7 +225,16 @@ const subtitles = [
                 whileTap={{ scale: 0.95 }}
                 className="px-8 py-4 bg-[#8BAE66] hover:bg-[#9BC97A] text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(139,174,102,0.4)] flex items-center justify-center group"
               >
-                LAUNCH STUDIO
+                RAYTRACING STUDIO
+                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </motion.a>
+              <motion.a 
+                href="/aesthetic" 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 bg-[#628141] hover:bg-[#7a9d56] text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(98,129,65,0.4)] flex items-center justify-center group"
+              >
+                MACHINE LEARNING
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </motion.a>
               <motion.a 

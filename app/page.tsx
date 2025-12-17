@@ -5,6 +5,7 @@ import { HowItWorks } from "./components/HowItWorks";
 import { DemoSection } from "./components/DemoSection";
 import { Benchmark } from "./components/Benchmark";
 import { SystemArchitecture } from "./components/SystemArchitecture";
+import { WhyItMatters } from "./components/WhyItMatters";
 import { AIChatLanding } from "./components/AIChatLanding";
 import { Footer } from "./components/Footer";
 import { ScrollAnimation } from "./components/ui/ScrollAnimation";
@@ -25,10 +26,13 @@ export default function Home() {
           <ProblemSolution />
         </ScrollAnimation>
         <ScrollAnimation>
-          <Benchmark />
+          <WhyItMatters />
         </ScrollAnimation>
         <ScrollAnimation>
           <SystemArchitecture />
+        </ScrollAnimation>
+        <ScrollAnimation>
+          <Benchmark/>
         </ScrollAnimation>
         <ScrollAnimation>
           <DemoSection />
