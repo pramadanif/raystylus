@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, MessageSquare, Loader2, AlertCircle, Bot, User } from 'lucide-react';
+import { Send, MessageSquare, Loader2, AlertCircle, Bot, User, Zap } from 'lucide-react';
 
-// 1. UPDATE INTERFACE: Tambahkan 'role' untuk membedakan User vs AI
 interface Message {
     id: string;
     role: 'user' | 'ai'; 
@@ -37,7 +36,6 @@ export const AIChat = ({
     onConfigReceived?: (config: any) => void;
     mode?: 'studio' | 'aesthetic';
 }) => {
-    // Define valid keys untuk masing-masing mode
     const validKeysMap = {
         studio: ['sphereColor', 'bgColor1', 'bgColor2', 'cameraX', 'cameraY', 'cameraZ'],
         aesthetic: ['warmth', 'intensity', 'depth']
@@ -57,24 +55,18 @@ export const AIChat = ({
         scrollToBottom();
     }, [messages]);
 
-    // 2. LOGIC: Parsing response yang lebih aman dengan JSON extraction
     const parseAIResponse = (response: string) => {
         const cleanText = response.trim();
         if (cleanText.startsWith('[CONFIG]')) {
-            // Hapus tag dan bersihkan whitespace
             let jsonContent = cleanText.replace('[CONFIG]', '').trim();
-            
-            // Extract JSON dari response (robust extraction)
             const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 jsonContent = jsonMatch[0];
             }
-            
             return { type: 'config' as const, content: jsonContent };
         } else if (cleanText.startsWith('[CHAT]')) {
             return { type: 'chat' as const, content: cleanText.replace('[CHAT]', '').trim() };
         }
-        // Fallback jika tidak ada tag
         return { type: 'chat' as const, content: cleanText };
     };
 
@@ -84,24 +76,21 @@ export const AIChat = ({
 
         setError(null);
         const userContent = input;
-        setInput(''); // Reset input segera
+        setInput('');
 
-        // Buat object pesan User
         const userMsg: Message = {
             id: `user-${Date.now()}`,
-            role: 'user', // Set Role User
+            role: 'user',
             type: 'chat',
             content: userContent,
             timestamp: new Date(),
         };
 
-        // 3. LOGIC: Update state lokal & Siapkan payload history
         const updatedHistory = [...messages, userMsg];
         setMessages(updatedHistory);
         setIsLoading(true);
 
         try {
-            // 4. API CALL: Mengirim array 'messages' (bukan cuma 'userMessage') + mode
             const response = await fetch('/api/ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -123,25 +112,21 @@ export const AIChat = ({
             const aiResponse = data.response;
             const parsed = parseAIResponse(aiResponse);
 
-            // Buat object pesan AI
             const aiMsg: Message = {
                 id: `ai-${Date.now()}`,
-                role: 'ai', // Set Role AI
+                role: 'ai',
                 type: parsed.type,
                 content: parsed.content,
                 timestamp: new Date(),
             };
             setMessages(prev => [...prev, aiMsg]);
 
-            // Eksekusi Config jika ada
             if (parsed.type === 'config') {
                 try {
-                    // Parse JSON dengan handling error yang lebih baik
                     let config;
                     try {
                         config = JSON.parse(parsed.content);
                     } catch (e) {
-                        // Coba extract JSON sekali lagi jika gagal
                         const jsonMatch = parsed.content.match(/\{[\s\S]*\}/);
                         if (jsonMatch) {
                             config = JSON.parse(jsonMatch[0]);
@@ -150,7 +135,6 @@ export const AIChat = ({
                         }
                     }
                     
-                    // Filter out invalid keys berdasarkan mode
                     const filteredConfig: any = {};
                     for (const key of validKeys) {
                         if (key in config) {
@@ -158,7 +142,6 @@ export const AIChat = ({
                         }
                     }
                     
-                    // Pastikan ada minimal 1 key yang valid
                     if (Object.keys(filteredConfig).length === 0) {
                         const invalidKeys = Object.keys(config);
                         setError(`Invalid config keys for ${mode} mode. Expected: ${validKeys.join(', ')}. Got: ${invalidKeys.join(', ')}`);
@@ -191,15 +174,20 @@ export const AIChat = ({
 
     return (
         <div className="flex flex-col h-full bg-[#050605]/95 border border-ray-light/10 rounded-lg overflow-hidden font-sans flex-1">
-            {/* Header */}
-            <div className="p-4 border-b border-ray-light/10 bg-black/40 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <MessageSquare size={16} className="text-ray-light" />
-                    <h3 className="text-sm font-semibold text-ray-cream">RayStylus AI</h3>
+            {/* HEADER - Lebih Menonjol */}
+            <div className="p-4 border-b-2 border-ray-light/30 bg-gradient-to-r from-ray-mid/40 via-black/60 to-ray-mid/20 flex items-center justify-between shadow-lg shadow-ray-mid/20">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-ray-mid/30 border border-ray-light/40">
+                        <Zap size={18} className="text-ray-light animate-pulse" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                        <h3 className="text-sm font-bold text-ray-cream tracking-wide">RayStylus AI</h3>
+                        <p className="text-[10px] text-ray-light/70 font-medium">Creative Assistant</p>
+                    </div>
                 </div>
                 <button 
                     onClick={() => setMessages([])} 
-                    className="text-[10px] text-ray-light/60 hover:text-ray-cream transition-colors"
+                    className="text-[10px] font-semibold text-ray-light/70 hover:text-ray-cream hover:bg-ray-mid/20 px-3 py-1.5 rounded-lg transition-all border border-ray-light/20 hover:border-ray-light/40"
                 >
                     Clear Chat
                 </button>
@@ -215,7 +203,6 @@ export const AIChat = ({
                 ) : (
                     <>
                         {messages.map((msg) => (
-                            // 5. UI: Alignment berdasarkan Role (User=Kanan, AI=Kiri)
                             <div 
                                 key={msg.id} 
                                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -249,7 +236,6 @@ export const AIChat = ({
                             </div>
                         ))}
                         
-                        {/* Loading Typing Indicator */}
                         {isLoading && (
                             <div className="flex justify-start">
                                 <div className="bg-black/40 rounded-2xl rounded-tl-none px-4 py-3 border border-ray-light/10">
@@ -267,7 +253,7 @@ export const AIChat = ({
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-ray-light/10 bg-black/20 space-y-2">
+            <div onSubmit={handleSendMessage} className="p-3 border-t border-ray-light/10 bg-black/20 space-y-2">
                 {error && (
                     <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 p-2 rounded border border-red-500/20 animate-in fade-in slide-in-from-bottom-2">
                         <AlertCircle size={12} />
@@ -279,19 +265,25 @@ export const AIChat = ({
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage(e as any);
+                            }
+                        }}
                         placeholder="Type a message..."
                         disabled={isLoading}
                         className="flex-1 bg-black/40 border border-ray-light/10 rounded-xl px-4 py-2.5 text-xs text-ray-cream placeholder-ray-light/40 outline-none focus:border-ray-light/30 focus:bg-black/60 transition-all disabled:opacity-50"
                     />
                     <button
-                        type="submit"
+                        onClick={(e) => handleSendMessage(e as any)}
                         disabled={isLoading || !input.trim()}
                         className="p-2.5 rounded-xl bg-ray-mid hover:bg-ray-light text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_0_15px_rgba(98,129,65,0.4)]"
                     >
                         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     );
 };
