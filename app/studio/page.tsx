@@ -432,6 +432,9 @@ export default function StudioPage() {
 
                     {/* Footer Info */}
                     <div className="mt-8 max-w-2xl text-center">
+                        <p className="text-xs text-gray-500">
+                        Fully on-chain 3D ray tracing — executed inside a smart contract, not your GPU.
+                        </p>
                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
                             <Activity size={14} className="text-ray-mid" />
                             <p className="text-xs text-gray-400">
