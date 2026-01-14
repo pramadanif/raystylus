@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
                 }));
 
                 const completion = await openai.chat.completions.create({
-                    model: 'openai/gpt-oss-20b:free', // Model gratis yang cepat & bagus
+                    model: process.env.OPENROUTER_API_MODEL || 'openai/gpt-oss-20b:free', // Model gratis yang cepat & bagus
                     messages: [
                         { role: 'system', content: systemPrompt },
                         ...apiMessages
