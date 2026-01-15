@@ -25,44 +25,45 @@
 
 </div>
 
-<div align="justify">
----
-### The Story ###
+<div align="center">
+  <strong>The Story</strong>
+</div>
 
-💬 The Hook
-Most people still think blockchains are only good for DeFi.
+<div align="justify">
+
+💬 <strong>The Hook</strong>  
+Most people still think blockchains are only good for DeFi.  
 We don’t.
 
-⚡ The Breakthrough
+⚡ <strong>The Breakthrough</strong>  
 Meet RayStylus — the first fully on-chain ray tracing engine built with Arbitrum Stylus (Rust), enhanced with an on-chain mini neural network.
 
-🔬 Why Stylus Changes Everything
-This level of computation is impractical on traditional EVM contracts.
+🔬 <strong>Why Stylus Changes Everything</strong>  
+This level of computation is impractical on traditional EVM contracts.  
 With Stylus + Rust, RayStylus executes heavy vector math, ray–sphere intersections, and pixel shading directly on-chain — deterministically and verifiably.
 
-🧠 On-Chain Mini Neural Network
-Beyond classic ray tracing, RayStylus includes a lightweight neural network executed on-chain.
+🧠 <strong>On-Chain Mini Neural Network</strong>  
+Beyond classic ray tracing, RayStylus includes a lightweight neural network executed on-chain.  
 This neural module dynamically computes depth intensity and color modulation, enabling adaptive shading that goes beyond fixed mathematical formulas — while remaining fully deterministic.
 
-🤖 Human-Friendly by Design
-An AI-powered configuration agent (OpenAI integration) translates natural language prompts into deterministic rendering parameters.
-AI never touches execution logic — it only assists configuration.
+🤖 <strong>Human-Friendly by Design</strong>  
+An AI-powered configuration agent (OpenAI integration) translates natural language prompts into deterministic rendering parameters.  
+AI never touches execution logic — it only assists configuration.  
 All rendering and neural computation happens entirely on-chain.
 
-🌐 The Vision
-RayStylus demonstrates that Stylus unlocks computational domains previously impossible on-chain.
+🌐 <strong>The Vision</strong>  
+RayStylus demonstrates that Stylus unlocks computational domains previously impossible on-chain.  
 By combining ray tracing + neural inference in a single smart contract, it challenges the assumption that blockchains can only handle financial logic.
 
-🚀 Why This Matters
-This is not a simulation or off-chain shortcut.
+🚀 <strong>Why This Matters</strong>  
+This is not a simulation or off-chain shortcut.  
 RayStylus performs real rendering and neural inference on-chain, achieving 10–100× lower gas costs compared to EVM-only approaches.
 
-RayStylus is not a DeFi app.
+RayStylus is not a DeFi app.  
 It’s a proof-of-compute for Arbitrum Stylus.
 
 </div>
 
----
 
 ## 📋 Table of Contents
 
