@@ -1,7 +1,7 @@
 
 <div align="center">
 
-  <img src="./public/raystylus-logo.png" alt="RayStylus Logo" width="150" />
+  <img src="./public/raystylus-logo.png" alt="RayStylus Logo" width="300" />
 
   # 🎨 RayStylus: On-Chain Ray Tracing Engine
 
