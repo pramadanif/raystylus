@@ -20,13 +20,14 @@
 
   [![Arbitrum Stylus](https://img.shields.io/badge/Arbitrum-Stylus-blue?style=flat-square)](https://arbitrum.io)
   [![Rust](https://img.shields.io/badge/Language-Rust-orange?style=flat-square)](https://www.rust-lang.org/)
+  [![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?style=flat-square)](https://nextjs.org)
   [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
 
 </div>
 
-<div align="center">
+<div align="justify">
 ---
-### The Story
+### The Story ###
 
 💬 The Hook
 Most people still think blockchains are only good for DeFi.
@@ -58,11 +59,6 @@ RayStylus performs real rendering and neural inference on-chain, achieving 10–
 
 RayStylus is not a DeFi app.
 It’s a proof-of-compute for Arbitrum Stylus.
-
-[![Arbitrum Stylus](https://img.shields.io/badge/Arbitrum-Stylus-blue?style=flat-square)](https://arbitrum.io)
-[![Rust](https://img.shields.io/badge/Language-Rust-orange?style=flat-square)](https://www.rust-lang.org/)
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?style=flat-square)](https://nextjs.org)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
 
 </div>
 
