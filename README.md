@@ -1,12 +1,30 @@
 
-# 🎨 RayStylus: On-Chain Ray Tracing Engine
-
 <div align="center">
 
-![RayStylus Logo](./public/raystylus-logo.png)
+  <img src="./public/raystylus-logo.png" alt="RayStylus Logo" width="150" />
+
+  # 🎨 RayStylus: On-Chain Ray Tracing Engine
+
+  <br/>
+  <img src="./public/demo.gif" alt="RayStylus On-Chain Demo" width="600" />
+  <br/>
+
+  <sub><i>Actual on-chain rendering: 32x32 pixels, calculated in Rust via Stylus. No off-chain GPU used.</i></sub>
+
+  <br/>
+  <br/>
+
+  <h3>
+    <a href="https://raystylus.vercel.app">🚀 LAUNCH LIVE STUDIO</a>
+  </h3>
+
+  [![Arbitrum Stylus](https://img.shields.io/badge/Arbitrum-Stylus-blue?style=flat-square)](https://arbitrum.io)
+  [![Rust](https://img.shields.io/badge/Language-Rust-orange?style=flat-square)](https://www.rust-lang.org/)
+  [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
+
+</div>
 
 ---
-
 ### The Story
 
 💬 The Hook
