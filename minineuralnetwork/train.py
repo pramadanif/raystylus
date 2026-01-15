@@ -18,7 +18,7 @@ print(f"--- 1. Generating {N_SAMPLES} Synthetic Data Samples ---")
 X = np.random.rand(N_SAMPLES, INPUT_DIM)
 
 # Output Data (Y): [Sphere Color R, Sphere Color G] - Normalized 0.0 to 1.0
-# Kita buat hubungan yang sedikit lebih kompleks yang idealnya dipelajari oleh NN.
+# We create a slightly more complex relationship for the NN to learn.
 Y_R = 0.6 * X[:, 0] + 0.2 * X[:, 1] * X[:, 2] + np.random.normal(0, 0.05, N_SAMPLES)
 Y_G = 0.7 * X[:, 1] - 0.3 * X[:, 0] + 0.1 * np.sin(X[:, 2] * 2 * np.pi) + np.random.normal(0, 0.05, N_SAMPLES)
 
@@ -27,7 +27,7 @@ Y_R = np.clip(Y_R, 0.0, 1.0)
 Y_G = np.clip(Y_G, 0.0, 1.0)
 Y = np.column_stack((Y_R, Y_G))
 
-# Split data (opsional, tapi disarankan)
+# Split data (optional, but recommended)
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 print(f"Training data shape: {X_train.shape}")
@@ -36,13 +36,13 @@ print(f"Training data shape: {X_train.shape}")
 print("\n--- 2. Training Mini Neural Network (1 Hidden Layer) ---")
 
 model = Sequential([
-    # Hidden Layer: 4 neurons, menggunakan fungsi aktivasi ReLU (W_1, b_1)
+    # Hidden Layer: 4 neurons, using ReLU activation function (W_1, b_1)
     Dense(HIDDEN_UNITS, activation='relu', input_shape=(INPUT_DIM,), name='hidden_layer'),
-    # Output Layer: 2 outputs, menggunakan aktivasi Sigmoid untuk memastikan output 0-1 (W_2, b_2)
+    # Output Layer: 2 outputs, using Sigmoid activation to ensure 0-1 output (W_2, b_2)
     Dense(OUTPUT_DIM, activation='sigmoid', name='output_layer')
 ])
 
-# Kompilasi dan Latih
+# Compile and Train
 model.compile(optimizer='adam', loss='mse')
 model.fit(X_train, Y_train, epochs=50, batch_size=32, verbose=0)
 loss = model.evaluate(X_test, Y_test, verbose=0)
@@ -51,14 +51,14 @@ print(f"Model trained successfully. Test Loss (MSE): {loss:.4f}")
 # --- 3. Extracting Weights and Biases (4 Arrays) ---
 print("\n--- 3. Extracting All Weights and Biases ---")
 
-# Lapisan 1: Input -> Hidden (4 Arrays)
+# Layer 1: Input -> Hidden (4 Arrays)
 weights_1, biases_1 = model.get_layer('hidden_layer').get_weights()
-# Lapisan 2: Hidden -> Output (4 Arrays)
+# Layer 2: Hidden -> Output (4 Arrays)
 weights_2, biases_2 = model.get_layer('output_layer').get_weights()
 
-print(f"Weights 1 (Input->Hidden, Shape {weights_1.shape}):\n{weights_1.T}") # Transpose untuk format perkalian matriks Rust
+print(f"Weights 1 (Input->Hidden, Shape {weights_1.shape}):\n{weights_1.T}") # Transpose for Rust matrix multiplication format
 print(f"Biases 1 (Hidden, Shape {biases_1.shape}):\n{biases_1}")
-print(f"Weights 2 (Hidden->Output, Shape {weights_2.shape}):\n{weights_2.T}") # Transpose untuk format perkalian matriks Rust
+print(f"Weights 2 (Hidden->Output, Shape {weights_2.shape}):\n{weights_2.T}") # Transpose for Rust matrix multiplication format
 print(f"Biases 2 (Output, Shape {biases_2.shape}):\n{biases_2}")
 
 # --- 4. Conversion to Rust Fixed-Point i64 Format ---
