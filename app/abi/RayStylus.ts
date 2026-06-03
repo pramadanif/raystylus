@@ -278,4 +278,4 @@ export const RAYSTYLUS_ABI = [
 // ============================================
 // CONTRACT ADDRESS - UPDATE AFTER DEPLOYMENT
 // ============================================
-export const RAYSTYLUS_ADDRESS = "0x1bd8e7e9b1d0824eb97535af61bbaed0a9dd5757" as const;
+export const RAYSTYLUS_ADDRESS = "0xd8f78c69d392d0235d851366dc6f97e378f73cb1" as const;
